@@ -1,0 +1,123 @@
+---
+title: "Deepak Mongia - Data607 Week1 - Assignment"
+author: "Deepak Mongia"
+date: "September 1, 2018"
+output: html_document
+---
+
+The document is for Data-607 for Fall 2018 for the course of CUNY SPS - MSDS. This deals with a dataset which has the data related to mushrooms.
+
+```{r}
+library(plyr)
+library(ggplot2)
+mushrooms.dataset <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", sep = ",", header = FALSE)
+
+View(mushrooms.dataset)
+
+names(mushrooms.dataset) <- c("class", "cap-shape", "cap-surface", "cap-color", "bruises",
+                              "odor", 
+                              "gill-attachment", "gill-spacing", "gill-size", "gill-color",
+                              "stalk-shape", "stalk-root", "stalk-surface-above-ring",
+                              "stalk-surface-below-ring", "stalk-color-above-ring",
+                              "stalk-color-below-ring", "veil-type", "veil-color", 
+                              "ring-number", "ring-type", "spore-print-color", 
+                              "population", "habitat")
+
+```
+
+Reformatting the data set so that the data set is having the relevant values in the columns, and hence it will then be easier to read the data and understand it well.
+Here we are replacing the abbreviated data into relevant information so that it makes more sense.
+All the values have been converted to relevant and easily understood values under all the captured variables for this mushroom data set.
+
+## Please note here that this code is to convert the values for 23 variables in total and hence the code has been hidden from the html document to make it look cleaner.
+
+```{r, echo=FALSE}
+mushrooms.dataset$class <- mapvalues(mushrooms.dataset$class, from = c("p", "e"), to = c("poisonous", "edible"))
+
+mushrooms.dataset$`cap-shape` <- revalue(mushrooms.dataset$`cap-shape`, c("b" = "bell", "c" = "conical", "x" = "convex", "f" = "flat", "k" = "knobbed", "s" = "sunken"))
+
+mushrooms.dataset$`cap-surface` <- revalue(mushrooms.dataset$`cap-surface`, c("f" = "fibrous", "g" = "grooves", "y" = "scaly", "s" = "smoothy"))
+
+mushrooms.dataset$`cap-color` <- mapvalues(mushrooms.dataset$`cap-color`, from = c("n", "b", "c", "g", "r", "p", "u", "e", "w", "y"), to = c("brown", "buff", "cinnamon", "gray", "green", "pink", "purple", "red", "white", "yellow"))
+
+levels(mushrooms.dataset$bruises)[levels(mushrooms.dataset$bruises) == "t"] <- "bruises"
+levels(mushrooms.dataset$bruises)[levels(mushrooms.dataset$bruises) == "f"] <- "no-bruises"
+
+mushrooms.dataset$odor <- revalue(mushrooms.dataset$odor, c("a" = "almond", "l" = "anise", "c" = "creosote", "y" = "fishy", "f" = "foul", "m" = "musty", "n" = "none", "p" = "pungent", "s" = "spicy"))
+
+levels(mushrooms.dataset$`gill-attachment`)[levels(mushrooms.dataset$`gill-attachment`) == "a"] <- "attached"
+levels(mushrooms.dataset$`gill-attachment`)[levels(mushrooms.dataset$`gill-attachment`) == "d"] <- "descending"
+levels(mushrooms.dataset$`gill-attachment`)[levels(mushrooms.dataset$`gill-attachment`) == "f"] <- "free"
+levels(mushrooms.dataset$`gill-attachment`)[levels(mushrooms.dataset$`gill-attachment`) == "n"] <- "notched"
+
+mushrooms.dataset$`gill-spacing` <- revalue(mushrooms.dataset$`gill-spacing`, c("c" = "close", "w" = "crowded", "d" = "distant"))
+
+mushrooms.dataset$`gill-size` <- mapvalues(mushrooms.dataset$`gill-size`, from = c("b", "n"), to = c("broad", "narrow"))
+
+mushrooms.dataset$`gill-color` <- revalue(mushrooms.dataset$`gill-color`, c("k" = "black", "n" = "brown", "b" = "buff", "h" = "chocolate", "g" = "gray", "r" = "green", "o" = "orange", "p" = "pink", "u" = "purple", "e" = "red", "w" = "white", "y" = "yellow"))
+
+mushrooms.dataset$`stalk-shape` <- revalue(mushrooms.dataset$`stalk-shape`, c("e" = "enlarging", "t" = "tapering"))
+
+mushrooms.dataset$`stalk-root` <- revalue(mushrooms.dataset$`stalk-root`, c("b" = "bulbous", "c" = "club", "u" = "cup", "e" = "equal", "z" = "rhizomorphs", "r" = "rooted"))
+
+mushrooms.dataset$`stalk-surface-above-ring` <- mapvalues(mushrooms.dataset$`stalk-surface-above-ring`, from = c("f", "y", "k", "s"), to = c("fibrous", "scaly", "silky", "smooth"))
+
+mushrooms.dataset$`stalk-surface-below-ring` <- mapvalues(mushrooms.dataset$`stalk-surface-below-ring`, from = c("f", "y", "k", "s"), to = c("fibrous", "scaly", "silky", "smooth"))
+
+mushrooms.dataset$`stalk-color-above-ring` <- revalue(mushrooms.dataset$`stalk-color-above-ring`, c("n" = "brown", "b" = "buff", "c" = "cinnamon", "g" = "gray", "o" = "orange", "p" = "pink", "e" = "red", "w" = "white", "y" = "yellow"))
+
+mushrooms.dataset$`stalk-color-below-ring` <- revalue(mushrooms.dataset$`stalk-color-below-ring`, c("n" = "brown", "b" = "buff", "c" = "cinnamon", "g" = "gray", "o" = "orange", "p" = "pink", "e" = "red", "w" = "white", "y" = "yellow"))
+
+mushrooms.dataset$`veil-type` <- mapvalues(mushrooms.dataset$`veil-type`, from = c("p", "u"), to = c("partial", "universal"))
+
+mushrooms.dataset$`veil-color` <- revalue(mushrooms.dataset$`veil-color`, c("n" = "brown", "o" = "orange", "w" = "white", "y" = "yellow"))
+
+mushrooms.dataset$`ring-number` <- revalue(mushrooms.dataset$`ring-number`, c("n" = "none", "o" = "one", "t" = "two"))
+
+mushrooms.dataset$`ring-type` <- revalue(mushrooms.dataset$`ring-type`, c("c" = "cobwebby", "e" = "evanescent", "f" = "flaring", "l" = "large", "n" = "none", "p" = "pendant", "s" = "sheathing", "z" = "zone"))
+
+mushrooms.dataset$`spore-print-color` <- revalue(mushrooms.dataset$`spore-print-color`, c("k" = "black", "n" = "brown", "b" = "buff", "h" = "chocolate", "r" = "green", "o" = "orange", "u" = "purple", "w" = "white", "y" = "yellow"))
+
+mushrooms.dataset$population <- revalue(mushrooms.dataset$population, c("a" = "abundant", "c" = "clustered", "n" = "numerous", "s" = "scattered", "v" = "several", "y" = "solitary"))
+
+mushrooms.dataset$habitat <- revalue(mushrooms.dataset$habitat, c("g" = "grasses", "l" = "leaves", "m" = "meadows", "p" = "paths", "u" = "urban", "w" = "waste", "d" = "woods"))
+
+
+```
+
+A subset of columns has been created below keeping only the columns which are relevant in the context and which give more information regardsing the question - "Is there a parameter which determines if the mushroom of a particular quality are poisonous or not ? "
+
+```{r}
+mushrooms.dataset.subset <- mushrooms.dataset[, c("class", "cap-shape", "cap-surface", "cap-color", "odor", "population", "habitat")]
+
+# Fetching only the poisonous entries from the dataset to check for the various factors that might suggest if mushroom will be poisonous or edible
+
+mushrooms.dataset.subset.poisonous <- subset(mushrooms.dataset.subset, class == "poisonous")
+
+mushrooms.dataset.subset.edible <- subset(mushrooms.dataset.subset, class == "edible" )
+
+```
+
+
+Some basic statistics within the poisonous and edible mushrooms:
+
+```{r}
+# How the odor determines the poisonous quality
+ggplot(mushrooms.dataset.subset.poisonous, aes(x = factor(1), fill = factor(odor))) + geom_bar(width = 1) + coord_polar(theta = "y")
+
+# How the odor determines the edible quality
+ggplot(mushrooms.dataset.subset.edible, aes(x = factor(1), fill = factor(odor))) + geom_bar(width = 1) + coord_polar(theta = "y")
+
+# Split of the habitats within the poisonous mushrooms
+ggplot(mushrooms.dataset.subset.poisonous, aes(x = factor(1), fill = factor(habitat))) + geom_bar(width = 1) + coord_polar(theta = "y")
+
+# split of the habitats within the edible mushrooms
+ggplot(mushrooms.dataset.subset.edible, aes(x = factor(1), fill = factor(habitat))) + geom_bar(width = 1) + coord_polar(theta = "y")
+
+```
+
+## Final Word: 
+### 1. All the foul smelling mushrooms fall under are poisonous in nature. 
+### 2. Only the mushrooms with the odor in the 3 categories - almond, anise or no smell - fall under the edible ones
+
+
