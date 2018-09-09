@@ -1,0 +1,76 @@
+---
+title: "Data 607 Week-2 Assignment - SQL and R"
+author: "Deepak Mongia"
+date: "September 8, 2018"
+output: html_document
+---
+
+This document has been created using Rmarkdown document, and is meant for assignment for week-2 for the Data 607 Fall 2018 semester course.
+It assumes that there is a MySQL database available called 'movies', which has a table called 'movie_ratings'. The table has 3 columns - movie_id, person_id and movie_rating. Also the data base has 2 look up tables - one each for the movie_names and person which must have the movie entry and person entry respectively in the data base before the movie_ratings has the entry. The table movie_ratings basically lists the ratings of all the 6 movies present on the movie_names table given by all the 7 people whose data is present in the table person.
+
+This code reads the table from the MySQL database and loads it into a R data.frame. And then it performs some basic data manipulations to make the data more meaningful.
+
+```{r}
+#Installing and Loading the required packages
+#install.packages("RMySQL")
+library(RMySQL)
+library(ggplot2)
+```
+
+Connecting to the database - MySQL
+```{r}
+## Note here that the password entered here is a temporary passdword set up for the root user in MySQL so that the actual root password is not required. This increases the reproducible nature of the code, and both the SQL file and the R markdown file can work together well on any computer with no issues.
+mydb = dbConnect(MySQL(), user='root', password='test1234', dbname='movies', host='localhost')
+summary(mydb)
+```
+
+Reading the table - movie_ratings from the connected database - movies
+```{r}
+movie.ratings.df <- dbGetQuery(mydb, "
+                              select 	b.movie_name as movie_name,
+		                           a.person_id as person_id,
+                               a.movie_rating as movie_rating
+                               from	movie_ratings a,
+                               movie_names b
+                               where	a.movie_id = b.movie_id
+                               ")
+
+movie.ratings.df
+
+```
+
+Basic findings from the observations:
+```{r, echo=FALSE}
+
+average_rating_Avengers <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'Avengers: Infinity War'])), 2)
+sprintf("Average rating of the observations for : Avengers: Infinity War is %s", average_rating_Avengers)
+
+average_rating_CrazyRichAsians <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'Crazy Rich Asians'])), 2)
+sprintf("Average rating of the observations for : Crazy Rich Asians is %s", average_rating_CrazyRichAsians)
+
+average_rating_Deadpool2 <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'Deadpool 2'])), 2)
+sprintf("Average rating of the observations for : Deadpool 2 is %s", average_rating_Deadpool2)
+
+average_rating_Incredibles2 <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'Incredibles 2'])), 2)
+sprintf("Average rating of the observations for : Incredibles 2 is %s", average_rating_Incredibles2)
+
+average_rating_Searching <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'Searching'])), 2)
+sprintf("Average rating of the observations for : Searching is %s", average_rating_Searching)
+
+average_rating_ThePredator <- round(mean(as.numeric(movie.ratings.df$movie_rating[movie.ratings.df$movie_name == 'The Predator'])), 2)
+sprintf("Average rating of the observations for : The Predator is %s", average_rating_ThePredator)
+
+
+#The following code is to create a bar plot for the average rating for all the 6 movies
+movie.ratings.df$movie_rating <- as.numeric(movie.ratings.df$movie_rating)
+
+movie.rating.avg.by.movie <- aggregate(movie_rating ~ movie_name, movie.ratings.df, mean)
+
+movie.rating.avg.by.movie$movie_rating <- round(movie.rating.avg.by.movie$movie_rating, 2)
+
+View(movie.rating.avg.by.movie)
+
+ggplot(movie.rating.avg.by.movie, aes(x=movie_name, y=movie_rating, fill=movie_name)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ylab("rating")
+
+```
+
