@@ -1,0 +1,199 @@
+---
+title: "Data607 - Week 3 Assignment"
+author: "Deepak Mongia"
+date: "September 15, 2018"
+output: html_document
+---
+
+This is a document for the week 3 assignment for Data 607 course for the fall semester.
+The questions which have been handled in this exercise are from the book - Automated Data Collection with R. 
+This exercise if related to Regular Expressions and essential string functions - through R. The questions handled below are problems 3, 4 and 9 from chapter 8 in the book.
+
+
+Problem 3.
+The question talks about an already derived vector from the intial raw data string - raw.data in the start of the chapter. The names extracted from the raw string are all in different format and looks as below:
+"Moe Szyslak"          "Burns, C. Montgomery" "Rev. Timothy Lovejoy" "Ned Flanders"         "Simpson, Homer"       "Dr. Julius Hibbert"
+
+Initial data set up for Problem 3.
+```{r}
+## Load the stringr function 
+library(stringr)
+
+## Initial data and the vector derives as given in the book.
+raw.data <- "555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5543642Dr. Julius Hibbert"
+
+name <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+
+name
+```
+
+
+(a) Use the tools of this chapter to rearrange the vector so that all elements conform the standard - first_name last_name
+```{r}
+## Fetching from the array elements the titles. If a name has no title, then this will return NA
+title <- str_extract(name, "^\\w+\\. ")
+title
+
+## Check which of the above derived vector is NA. If NA, then the original name is put in the next intermediate name vector, else - which means there is a title in the name, just fetch the last 2 words - first name and last name
+name.without.title <- ifelse(is.na(title), name, str_extract(name, "\\w+ \\w+$"))
+
+## Now we have got rid of the title in the format - title firstname lastname. That means now we have 3 formats - 'firstname last name', 'lastname, midname. firstname' and 'lastname, firstname'. 
+## Now we define an intermediate vector which will have valid value for only the 2nd and 3rd formats from above - that means have the last name and first name separated by a comma, with a possibility of middle name in between
+last.name.first.vect <- str_extract(name.without.title, "\\w+, \\w+?\\.? ?\\w+")
+last.name.first.vect
+
+## Now we check NA in the above intermediate vector - last.name.first.vect .If NA, that means no comma, and the name is already in the required format - 'firstname lastname', we simply write the previous vector value - name.without.title. If not NA, that means a comma is separating last name and first name, then we keep the last word (which is the firstname) and first word (which is the lastname) and join them separated by a space - to get the final format: 'firstname lastname'. It is done below:
+
+## Intermediate first name vector - This has first name only in case of comma separated lastname and firstname. For other scenarios, this will not be used
+intermediate.first.name <- str_extract(name.without.title, "\\w+$")
+
+## Intermediate last name vector - This has last name only in case of comma separated lastname and firstname. For other scenarios, this will not be used
+intermediate.last.name <- str_extract(name.without.title, "^\\w+")
+
+## Final name format derived here:
+final.name <- ifelse(is.na(last.name.first.vect), name.without.title, str_c(intermediate.first.name, intermediate.last.name, sep = " "))
+
+print("The names in the standard format - firstname lastname as as shown below: ")
+final.name
+
+```
+
+
+(b) Construct a logical vector indicating whether a character has a title (i.e. Rev. and Dr.)
+```{r}
+## The following expression uses the str_extract function on the name vector to find the first word and the first character following it. If the first character following the first word is a dot, that indicates that that name has a title. The sub_extr fetches the above, and then str_detect checks if the string extracted has a dot or not. Hence the final vector created is a logical vector which signifies if the array element names have a title or not.
+str_extract(name, "[:alpha:]+.")
+
+print("The logical vector showing if the name has a title or not")
+str_detect(str_extract(name, "[:alpha:]+."), "\\.")
+```
+
+(c) Construct a logical vector indicating whether a character has a second name.
+```{r}
+## Based on the types of formats of names in the string / vecor, the following expression fetches from each name element of the name vector the pattern - any character one or more number of times, followed by a comma followed by any character one or more number of times again, followed by a dot and then space. That means "xxx,xxx. " .If any of the names in the vector fetches a string like this, that means that particular name element has a 2nd name. The ones which do not have a second name will not satisfy this criteria and hence will fetch NA.
+
+str_extract(name, ".+,.+\\. ")
+
+## Now from this vector of NA and some string value, we will check if these elements are NA or not. If NA (no second name), then the function returns TRUE. Hence the negation of the same will give TRUE for the ones which have second name and FALSE for the ones which do not.
+
+print("The logical vector indicating whether a character has a second name")
+!(is.na(str_extract(name, ".+,.+\\. ")))
+
+```
+
+Problem # 4 - Describe types of strings that conform to the following regular expressions and construct an example that is matched  by the regular expressions given below:
+
+(a) [0-9]+\\$
+
+Answer - This regular expression signifies - at least 1 numeric character, followed by $ sign. Any string with this pattern will satisfy this regular expression and hence will fetch the values. This signifies the numeric dollar amount without any decimal places.
+Example of a string matching this expression:
+"125$ price of the productA 45$ price of the productB", "[0-9]+\\$"
+```{r}
+unlist(str_extract_all("125$ price of the productA 45$ price of the productB", "[0-9]+\\$"))
+
+```
+
+(b) \\b[a-z]{1,4}\\b
+
+Answer - \b signifies word edge. Hence this regular expression signifies a word with a lower alphabetical character minimum 1 and maximum 4 in count, follwed by the word edge. That means a word with 1 to 4 lower alphabetic character.
+
+Example of a string matching this expression. In this string, the words 124, defgh and a12c will not satisfy this regular expression as the first one is all numeric and hence not all alphabetic 1 to 4 count. The word - defgh has all alphabetic characters but the count of characters is 5 and hence falls outside the range of 1 to 4. The word a12c has not all alphabetic characters even if the count is 4 which is withn the range - 1 to 4.
+```{r}
+unlist(str_extract_all("124 abc a12c defgh a zyxu a.bc", "\\b[a-z]{1,4}\\b"))
+```
+
+(c) .*?\\.txt$
+
+Answer - This regular expression checks for any character present 0 or more times followed by a dot, further followed by txt. That means a string with a text file name in the end - ending with .txt will satisfy this regular expression. Here ? signifies that just the previous expression .* will be matched exactly once. In this scenario * means 0 or more - any characters. R generally fetches all the prior characters of the string due to *. Hence ? has a lower precedence, so it will fetch all the characters of the string.
+
+```{r}
+## Example1
+unlist(str_extract_all("ab*.txt$ 125 a.txt$12ab .txt$ ndg.txt", ".*?\\.txt$"))
+
+##Example2
+unlist(str_extract_all(".txt", ".*?\\.txt$"))
+
+## The below one does not satisfy the regular expression as the last file name is a .pdf file
+unlist(str_extract_all("a.txt .txt 123.txt abcd.pdf gfd111_xyz.pdf", ".*?\\.txt$"))
+```
+
+(d) \\d{2}/\\d{2}/\\d{4}
+
+Answer - This signifies general format of a date in mm/dd/yyyy format. But this does not check the validity of the date, e.g. month having value 20, it will still fetch it.
+
+Example - dob for member1 - 12/08/1988 dob member2:08/09/1977 member 3 birth date - 01/25/1981
+```{r}
+
+unlist(str_extract_all("dob for member1 - 12/08/1988 dob member2:08/09/1977 member 3 birth date - 01/25/1981", "\\d{2}/\\d{2}/\\d{4}"))
+
+## example with a dob having incorrect date value
+unlist(str_extract_all("dob for member1 - 12/08/1988 dob member2:20/20/1977 member 3 birth date - 01/25/1981", "\\d{2}/\\d{2}/\\d{4}"))
+
+```
+
+(e) <(.+?)>.+?</\\1>
+
+Answer - This signifies a HTML / XML tag, its value and the end tag to be fetched from a HTML / XML page.
+
+Example - <firstname> 'Robert' </firstname>
+<lastname> 'Kohl' </lastname>
+<state> 'IL' </state>
+
+```{r}
+XML1 <- "<firstname> 'Robert' </firstname>
+<lastname> 'Kohl' </lastname>
+<state> 'IL' </state>"
+
+unlist(str_extract_all(XML1, "<(.+?)>.+?</\\1>"))
+```
+
+
+Problem # 9 - The following code hidesa secret message. Crack it in R and regular expressions. Hint: Some of the characters are more revealing than others! 
+
+clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0Tanwo
+Uwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigO
+d6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5
+fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr
+
+```{r}
+## Assigning the code to a variable so that it is easy to play with.
+
+string.a <- "clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0Tanwo
+Uwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigO
+d6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5
+fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr"
+
+## After trying some basic hit and trials and multiple looks at the code, we are trying to fetch just the upper case alphabets. This comes from the hint given in the problem: Some of the characters are more revealing than others! 
+
+str_extract_all(string.a, "[[:upper:]]")
+
+## Wow ! The code is very clear now - Congratulations you are a supernerd!
+## Now we just have to play with the string to get this code out in another string. This will need multiple intermediate iterations as given below:
+
+## Another patter we can see here in the string is that each word is separated from the next with a dot, hence it becomes easier to use this dot as a separator for the words. Also we see that in the end of the code, there is an exclamation sign ! which is only after the last word in the code.
+
+## Below code is to split the main code into strings each of which will have 1 word. But these strings will have many other alphanumeric characters as well, to deal with. Hence we put all of them in a vector:
+code.intermediate.vect <- unlist(str_extract_all(string.a, "([[:upper:]]+\\n?[a-z0-9]+\\n?[a-z0-9]*){1,}(\\.|\\!)"))
+
+code.intermediate.vect
+
+## Now as we see each element in this above vector has a word hidden inside, the word being in all upper case letters. Now we are creating another intermediate vector to fetch just the uppercase letter, dot sign and exclamation sign as below:
+code.intermediate.vect2 <- unlist(str_extract_all(code.intermediate.vect, "[A-Z|\\.|!]+"))
+
+code.intermediate.vect2
+
+## Now we are in a good shape, and just that we need to change the word separaters from the dot to a space. We do this below and put it into another vector
+
+code.intermediate.vect3 <- str_replace(code.intermediate.vect2, "\\.", " ")
+
+code.intermediate.vect3
+
+## Now we can simply combine all these strings in the same order as given. The space separators for the words are also in the right place. Hence there is no further need to add another separator, hence we give separator as a null in the str_c function.
+
+hidden.message <- str_c(code.intermediate.vect3, collapse = "")
+
+print("The hidden message in the code is: ")
+hidden.message
+
+```
+
