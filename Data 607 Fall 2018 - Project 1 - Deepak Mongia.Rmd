@@ -1,0 +1,207 @@
+---
+title: "Data 607 Fall 2018 - Project 1"
+author: "Deepak Mongia"
+date: "September 21, 2018"
+output: html_document
+---
+
+In this project, you're given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players:
+Player's Name, Player's State, Total Number of Points, Player's Pre-Rating, and Average Pre Chess Rating of Opponents
+For the first player, the information would be:
+Gary Hua, ON, 6.0, 1794, 1605
+1605 was calculated by using the pre-tournament opponents' ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and dividing by the total number of games played.
+If you have questions about the meaning of the data or the results, please post them on the discussion forum. Data science, like chess, is a game of back and forth.
+The chess rating system (invented by a Minnesota statistician named Arpad Elo) has been used in many other contexts, including assessing relative strength of employment candidates by human resource departments.
+
+Loading the required packages and Reading the source file into R.
+Note here that the tournamentinfo.txt file has been saved in my github link and we will be reading it from here: https://raw.githubusercontent.com/deepakmongia/Fall2018/master/tournamentinfo.txt 
+
+```{r}
+##install.packages("readtext")
+##install.packages("stringr")
+library(readtext)
+library(stringr)
+
+getURL <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/tournamentinfo.txt"
+chess.tournament.txt <- readtext(getURL)
+View(chess.tournament.txt)
+class(chess.tournament.txt)
+```
+
+Now as we see above, the raw data frame from the text file is not good to use as such. So we will have to clean it up to make it useful for our exercise.
+
+```{r}
+## Splitting by next line character into a data.frame with multiple rows
+chess.tournament.df1 <- as.data.frame(str_split(chess.tournament.txt$text, "\n"))
+
+head(chess.tournament.df1, 20)
+names(chess.tournament.df1) <- "main_column"
+
+## Removing the non-data lines from the data frame
+chess.tournament.df3 <- as.data.frame(chess.tournament.df1[!is.na(str_extract(chess.tournament.df1$main_column, ".?(\\d|\\w)")), ])
+
+head(chess.tournament.df3, 20)
+
+names(chess.tournament.df3) <- "main_column"
+
+## Selecting only the data rows or removing the 2 header rows
+chess.tournament.df4 <- as.data.frame(chess.tournament.df3[substr(chess.tournament.df3$main_column, 1, 2) =="  ", ])
+
+head(chess.tournament.df4, 20)
+
+names(chess.tournament.df4) <- "main_column"
+
+## Splitting into columns based on pipe delimiter "|"
+elems <- unlist(str_split(chess.tournament.df4$main_column, "\\|"))
+
+chess.tournament.matrix <- matrix(elems, ncol = 11, byrow = TRUE)
+head(chess.tournament.matrix, 20)
+
+## Converting the matrix into a data.frame
+chess.data.frame1 <- as.data.frame(chess.tournament.matrix)
+
+## Creating a new data.frame with only the first row out of 2 rows for each player information
+chess.data.frame2 <- chess.data.frame1[!is.na(str_extract(chess.data.frame1$V1, "^ +\\d+")), ]
+
+## The state and the pre-score needs to come from the 2nd row for each of the player. Hence we are using this code to create a new column to have the state.
+chess.data.frame2$State <- chess.data.frame1[is.na(str_extract(chess.data.frame1$V1, "^ +\\d+")), 1]
+
+## Pulling the whole string from the 2nd row which has the pre-rating, into the new array
+chess.data.frame2$Pre.rating <- chess.data.frame1[is.na(str_extract(chess.data.frame1$V1, "^ +\\d+")), 2]
+
+## Now this pre.rating column has other data as well - USCF ID, pre-rating and post-rating. We need only the pre-rating for our data analysis. So, we will break it so that we can only have the pre-rating value in this column
+chess.data.frame2$Pre.rating <- str_extract(chess.data.frame2$Pre.rating, "R\\: +\\d+")
+
+chess.data.frame2$Pre.rating <- str_extract(chess.data.frame2$Pre.rating, "\\d+")
+
+chess.data.frame2$Pre.rating <- as.numeric(chess.data.frame2$Pre.rating)
+
+names(chess.data.frame2) <- c("Player.Id", "Name", "Total.Points", "Round.1", "Round.2", "Round.3", "Round.4", "Round.5", "Round.6", "Round.7", "Blank.field", "State", "Pre.rating")
+
+chess.data.frame2$Player.Id <- as.numeric(chess.data.frame2$Player.Id)
+
+chess.data.frame2$Round.1 <- as.character(chess.data.frame2$Round.1)
+chess.data.frame2$Round.2 <- as.character(chess.data.frame2$Round.2)
+chess.data.frame2$Round.3 <- as.character(chess.data.frame2$Round.3)
+chess.data.frame2$Round.4 <- as.character(chess.data.frame2$Round.4)
+chess.data.frame2$Round.5 <- as.character(chess.data.frame2$Round.5)
+chess.data.frame2$Round.6 <- as.character(chess.data.frame2$Round.6)
+chess.data.frame2$Round.7 <- as.character(chess.data.frame2$Round.7)
+
+head(chess.data.frame2, 20)
+
+```
+
+Now we have all the columns that are required. The final data.frame needs the below columns:
+Name
+State
+Total.Points
+Pre-rating
+Average Pre-rating of opponents
+
+So, we have all the required columns + extra columns. But we have to yet find the average pre-rating of the opponents for each player. This will be achieved through a function as defined below.
+
+```{r}
+average.rating.func <- function(player_id)
+  
+{
+  average_rating <- 0
+  sum_opponents <- 0
+  k <- 0
+  
+  ## Round1
+  a <- str_extract(chess.data.frame2$Round.1[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round2
+  a <- str_extract(chess.data.frame2$Round.2[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round3
+  a <- str_extract(chess.data.frame2$Round.3[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round4
+  a <- str_extract(chess.data.frame2$Round.4[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round5
+  a <- str_extract(chess.data.frame2$Round.5[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round6
+  a <- str_extract(chess.data.frame2$Round.6[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Round7
+  a <- str_extract(chess.data.frame2$Round.7[player_id], "\\w+ +\\d+")
+  if(!is.na(a))
+  {
+    b <- str_extract(a, "\\d+")
+    k <- k + 1
+    sum_opponents <- sum_opponents + chess.data.frame2$Pre.rating[chess.data.frame2$Player.Id == as.numeric(b)]
+  }
+  
+  ## Average Pre-Rating of opponents
+  average_rating <- round(sum_opponents/k, 0)
+  return(average_rating)
+  
+}
+```
+
+Now that we have a function ready to calculate the average pre-rating of the opponents knowing if a player id is passed into the function as an input parameter. We will utilize the lapply function, which takes in a vector and applies a function on each element of the vector and gives the function output as a resulting vector.
+
+```{r}
+chess.data.frame2$Avg.pre.rating.opponents <- unlist(lapply(chess.data.frame2$Player.Id, average.rating.func))
+
+head(chess.data.frame2)
+```
+
+Creating the final data.frame with only the columns that are required, and renumbering so the row numbers are in order.
+
+```{r}
+chess.final.data.frame <- chess.data.frame2[, c("Name", "State", "Total.Points", "Pre.rating", "Avg.pre.rating.opponents")]
+
+row.names(chess.final.data.frame) <- 1:nrow(chess.final.data.frame)
+
+chess.final.data.frame
+
+```
+
+Writing into a csv file on a local drive, which is as given by getwd below.
+```{r}
+getwd()
+
+write.table(chess.final.data.frame, file = "Chess_Tournament_Deepak_Mongia.csv", sep = ",", col.names = TRUE, row.names = FALSE)
+```
+
