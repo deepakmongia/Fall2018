@@ -1,0 +1,93 @@
+---
+title: "Deepak Mongia Data607 - Week 5 Assignment"
+author: "Deepak Mongia"
+date: "September 30, 2018"
+output: html_document
+---
+
+Assignment - Tidying and Transforming Data 
+
+1. Loading the required packages
+
+```{r, echo=FALSE}
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+```
+
+2. Reading the file into a data.frame from the Raw Github link
+```{r}
+getURL <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Arrival_Delays.csv"
+arrival.delays.df <- read.csv(getURL, header = TRUE, sep = ",")
+```
+
+3. 
+```{r}
+colnames(arrival.delays.df)[colnames(arrival.delays.df) == "X"] <- "airline"
+colnames(arrival.delays.df)[colnames(arrival.delays.df) == "X.1"] <- "status"
+arrival.delays.df
+
+# Removing the blank lines
+arrival.delays.df <- arrival.delays.df %>% filter(status == "on time" | status == "delayed")
+arrival.delays.df
+```
+
+4. Replacing the blank values in the column - airlines with their flight name
+```{r, echo=FALSE}
+airline_names_vector <- arrival.delays.df[!is.na(str_extract(arrival.delays.df$airline, "\\w+")), ]$airline
+arrival.delays.df[is.na(str_extract(arrival.delays.df$airline, "\\w+")), ]$airline <- airline_names_vector
+arrival.delays.df
+```
+
+5. 
+```{r}
+arrival.delays.df.molten <- arrival.delays.df %>% gather("destination", "frequency", 3:7)
+arrival.delays.df.molten
+arrival.delays.df.tidy <- arrival.delays.df.molten[, c(1,3,2,4)]
+arrival.delays.df.tidy
+```
+
+Now if we see the above data set, it is a tidy one, as each column is a variable, and each row is an observation.
+
+We will be doing some analysis now on this tidy data set.
+
+```{r, echo=FALSE}
+(airline_citywise_stats <- group_by(arrival.delays.df.tidy, airline, destination, status))
+airline_citywise_breakup <- summarize(airline_citywise_stats, count=sum(frequency))
+airline_citywise_breakup
+
+airline_citywise_breakup_Alaska <- filter(airline_citywise_breakup, airline == "ALASKA")
+airline_citywise_breakup_AMWest <- filter(airline_citywise_breakup, airline == "AM WEST")
+
+airline_citywise_breakup_Alaska
+airline_citywise_breakup_AMWest
+
+```
+
+Counts break-up of the 2 airlines for city wise on-time and delayed flight counts
+```{r, echo=FALSE}
+ggplot(airline_citywise_breakup_Alaska, aes(x=destination, y=count, fill=status)) + geom_bar(stat = "identity") + labs(title="Alaska Airlines destination wise break-up of counts")
+ggplot(airline_citywise_breakup_AMWest, aes(x=destination, y=count, fill=status)) + geom_bar(stat = "identity") + labs(title="AM West Airlines destination wise break-up of counts")
+```
+
+Percentage break-ups of the 2 airlines, ratio wise break-ups for each city 
+```{r, echo=FALSE}
+#For Alaska Airlines
+airline_citywise_breakup_Alaska_percent <- ddply(airline_citywise_breakup_Alaska, "destination", transform, percent_count=count/sum(count) * 100)
+
+ggplot(airline_citywise_breakup_Alaska_percent, aes(x=destination, y=percent_count, fill=status)) + geom_bar(stat = "identity") + labs(title="Alaska Airlines destination wise break-up of counts - by ratio")
+
+#For AM West Airlines
+airline_citywise_breakup_AMWest_percent <- ddply(airline_citywise_breakup_AMWest, "destination", transform, percent_count=count/sum(count) * 100)
+
+ggplot(airline_citywise_breakup_AMWest_percent, aes(x=destination, y=percent_count, fill=status)) + geom_bar(stat = "identity") + labs(title="AM West Airlines destination wise break-up of counts - by ratio")
+
+```
+
+Conclusion:
+
+1. From the last 2 graphs - ratio break-ups for each city signifies that for both the airlines, each city has almost similar trend for the 2 airlies when the ratio of the delayed to the on-time arrivals are considered. 
+
+2. However, the it is also quite visible from the graphs that AM West Airlines also has more chance of a delay as compared to the Alaska Airlines for any of the 5 given cities for which the readings have been considered for this analysis.
