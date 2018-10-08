@@ -1,0 +1,51 @@
+---
+title: "Deepak Mongia - Data 607 - Project-2"
+author: "Deepak Mongia"
+date: "October 7, 2018"
+output: html_document
+---
+
+This is the Project-2 in DATA607 course for CUNY SPS -Masters in Data Science program.
+As a part of this project, 3 wide or messy data sets are being read, cleaned up, and then used for individual analyses.
+
+Loading the required packages.
+```{r setup, include=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+Data set # 1 - UNICEF data for number of deaths of children age - 5-14 years in multiple areas or geographies
+We are now reading the first data set.
+```{r}
+getURL <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Number_of_deaths_estimates-childresn-age-5-14.csv"
+
+Children_death_estimates_df <- read.csv(getURL, header = TRUE, sep = ",", skip = 1)
+
+head(Children_death_estimates_df)
+```
+
+Now we are melting the data set, that means all the columns which are data are being converted to separate columns.
+```{r}
+Children_death_estimates_df_molten <- Children_death_estimates_df %>% gather("year", "Number.of.deaths", 3:7)
+
+head(Children_death_estimates_df_molten)
+```
+
+```{r}
+Children_death_estimates_df_molten$year <- substr(Children_death_estimates_df_molten$year, 2, 5)
+Children_death_estimates_df_molten$Number.of.deaths <- gsub(",", "", Children_death_estimates_df_molten$Number.of.deaths)
+
+head(Children_death_estimates_df_molten)
+```
+
+```{r}
+Children_death_estimates_df_molten_median <- Children_death_estimates_df_molten %>% filter(Children_death_estimates_df_molten$Uncertainty.bounds. == "Median", Children_death_estimates_df_molten$Region.Name != "World")
+
+head(Children_death_estimates_df_molten_median)
+```
+
+```{r}
+Children_death_estimates_df_molten_median <- Children_death_estimates_df_molten_median %>% arrange(Region.Name, year)
+```
+
