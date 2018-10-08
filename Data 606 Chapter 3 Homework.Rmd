@@ -1,0 +1,147 @@
+---
+title: "Deepak Mongia - Data 606 Chapter 3 Homework"
+author: "Deepak Mongia"
+date: "October 7, 2018"
+output: html_document
+---
+
+Question 3.2
+3.2 Area under the curve, Part II. What percent of a standard normal distribution N(?? =
+0, ! = 1) is found in each region? Be sure to draw a graph.
+(a) Z > ???1.13 (b) Z < 0.18 (c) Z > 8 (d) |Z| < 0.5
+
+(a) For Z = -1.13
+From the Normal Probability Table, 
+P for Z=-1.13    =    0.1292
+
+Probability for z>-1.13    =    1 - 0.1292 = 0.8708
+
+(b) For Z = 0.18
+P = .5714
+
+(c) For Z = 8
+P >= .9998
+
+Hence for Z > 8, P <= 1 - .9998 
+Hence P <= .0002
+
+(d) |Z| < 0.5 means -0.5 < Z < 0.5
+For Z = +0.5, PROBAILITY = 0.6915
+For Z = -0.5, PROBAILITY = 0.3085
+
+Hence Probability for -0.5 < Z < 0.5 will be  = 0.6915 - 0.3085 = 0.383
+
+
+
+Question - 3.4
+(a) For Men age group 30-34 under which Leo competed:
+N(µ = 4313, ?? = 583)
+
+For Women age group 25-29 under which Mary competed:
+N(µ = 5261, ?? = 807)
+
+(b) Z(Leo) = (x - µ) / ?? = (4948 - 4313) / 583 = 1.09
+
+Z(Mary) = (5513 - 5261) / 807 = 0.31
+
+The Z scores suggest the relative ranking of an observation within the group of normal distribution.
+As Z score of Leo is GREATER THAN Z score of Mary, that means Leo did better in his group as compared to Mary in her group.
+
+(c) The Z scores suggest the relative ranking of an observation within the group of normal distribution.
+As Z score of Leo is GREATER THAN Z score of Mary, that means Leo did better in his group as compared to Mary in her group.
+
+(d) Z(Leo) = 1.09
+So, from the normal distribution probability table, Probability = 0.8621
+that means 86.21 %
+Leo did better than 86.21% of the athletes in his group.
+
+(e) Z(Mary) = 0.31
+So, from the normal distribution probability table, Probability = 0.6217
+that means 62.17 %
+Mary did better than 62.17% of the athletes in her group.
+
+(f) If the distributions for the 2 groups are not nearly normal, then the answers suggested above won't hold true. The above given answers are as per the normal distribution.
+If the 2 data sets do not follow the normal distribution principle, then definitely the formulas  for Normal Distribution will not apply.
+
+
+Question 3.18
+(a) Number of observations within +1 and -1 standard deviation
+61.52 + 4.58 and 61.52 - 4.58 that means between 66.1 and 56.9
+= 17 which is exactly 68%
+
+Number of observations within +2 and -2 standard deviations
+61.52 + 2(4.58) and 61.52 - 2(4.58) that means between 70.68 and 52.36
+= 24 which is exactly 96%
+
+Number of observations within +3 and -3 standard deviations
+61.52 + 3(4.58) and 61.52 - 3(4.58) that means between 75.26 and 47.78
+= 25 which is 100%
+
+Hence we can say that this data set follows the 68-95-99.7% Rule
+
+(b) Yes, as per the histogram and the normal distribution curve, it seems to lie on the histogram. Also, as per the normal probability plot, most of the data lies on the lines, with very few points outside. So, we can safely say that this is a nearly normal distribution plot.
+
+
+
+Question 3.22
+(a) p, probability of sucess (a transistor is defective) = 0.02
+Probability that the 10th transistor is the first one with a defect =  (1 - 0.02)^(10-1) X 0.02
+(0.98)^9 X 0.02 = 0.0167
+
+(b) Probability that no defective in batch of 100 = (1 - 0.02) ^ 100
+= (0.98)^100 = 0.1326
+
+(c) Number of transistors before the first success = 1/p = 1/0.02 = 50
+That means on an average, 51st transistor will be a defective one
+
+?? = ((1-p)/p^2) ^1/2 OR sqrt((1-p)/p^2) = sqrt((1-0.02)/0.02^2) = 49.4975
+
+(d) For the 2nd machine, number of transistors before the first success = 1/p = 1/0.05 = 20
+That means on an average, 21st transistor will be a defective one
+
+?? = ((1-p)/p^2) ^1/2 OR sqrt((1-p)/p^2) = sqrt((1-0.05)/0.05^2) = 19.4936
+
+(e) As the probability is increased, the mean reduces, that means the average number of trials before the first success reduces.
+Similarly, the sd also decreases.
+
+
+
+Question 3.38
+(a) (3 choose 2) X p^2 X (1-p)^(3-2) = 3 X 0.51^2 X 0.49 = 0.3823
+
+(b) For 2 out of 3 children to be boys, indicates that only 1 is a girl.
+Assuming 3 children to be C1, C2, C3
+3 scenarios are:
+Scenario 1:
+    C1=girl, C2=boy, C3=boy
+Scenario 2:
+    C1=boy, C2=girl, C3=boy
+Scenario 3:
+    C1=boy, C2=boy, C3=girl
+
+P(Scenario1) = 0.49 X 0.51 X 0.51
+P(Scenario2) = 0.51 X 0.49 X 0.51
+P(Scenario3) = 0.51 X 0.51 X 0.49
+
+As either of the 3 scenarios can heppen, the 3 probabilities need to be added
+Hence, proobability of 2 boys out of 3 children = P(Scenario1) + P(Scenario2) + P(Scenario3)
+= 0.49 X 0.51 X 0.51 X 3 = 0.3823
+
+(c) In this new scenario of a couple planning to have 8 kids, having 3 boys, the binomial formula or model will be very quick as compared to the process used in part b above. The reason is writing down individual scenarios will be very tedious as the number of scenarios will be (8 choose 3) = 56
+
+Hence using the formula becomes very beneficial.
+
+Using the formula:
+probability of this scenario = (8 choose 3) X p^3 X (1-p)^5 = 56 X 0.51^3 X 0.49^5
+= 0.2098
+
+
+Question 3.42
+(a) (10-1 Choose 3-1) X 0.15^3 X (1-0.15)^7 = (9 choose 2) X 0.15^3 X 0.85^7
+= 0.0389
+
+(b) pProbability of the 10th serve to be successful = Probability of any serve to be successful
+as all serves are independent.
+Hence Probability of 10th serve to be successful = 0.15
+
+(c) The part a talks about the overall calculation of probability which includes all the 3 successful serves, while in part b, it talks about the condition that the first 2 successful serves are already made, and in this case we only need to get the probability of the third one to be successful. Hence in case b, it is just the probability of the 10th serve to be success, knowing that first 9 serves were already complete by now.
