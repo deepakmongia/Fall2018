@@ -13,6 +13,7 @@ Loading the required packages.
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(stringr)
 ```
 
 Data set # 1 - UNICEF data for number of deaths of children age - 5-14 years in multiple areas or geographies
@@ -47,5 +48,114 @@ head(Children_death_estimates_df_molten_median)
 
 ```{r}
 Children_death_estimates_df_molten_median <- Children_death_estimates_df_molten_median %>% arrange(Region.Name, year)
+```
+
+
+
+
+DATASET-2
+
+The secod data set is for the country wise data for Balance of payment as a percent of that country's GDP
+
+Step-1 - To read the data set from Github location into R
+```{r}
+getURL2 <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Selected_Indicators_Percent_of_GDP.csv"
+Selected_Indicators_Percent_of_GDP_raw <- read.csv(getURL2, header = TRUE, sep = ",", skip = 3)
+```
+
+Performing the steps to
+1) rename the first colum  to Country.names
+2) Removing the junk columns from the end
+3) Replcaing the unknown data given by 3 dots "..." by NA
+```{r}
+head(Selected_Indicators_Percent_of_GDP_raw)
+colnames(Selected_Indicators_Percent_of_GDP_raw)[colnames(Selected_Indicators_Percent_of_GDP_raw) == "X"] = "Country.name"
+names(Selected_Indicators_Percent_of_GDP_raw)
+
+Selected_Indicators_Percent_of_GDP_raw <- Selected_Indicators_Percent_of_GDP_raw %>% select(1:9)
+Selected_Indicators_Percent_of_GDP_raw[Selected_Indicators_Percent_of_GDP_raw == "..."] <- NA
+```
+
+Pull only the continents / categories and countries with non-blank values into a new filtered data set
+```{r}
+Selected_Indicators_Percent_of_GDP_filtered <-  Selected_Indicators_Percent_of_GDP_raw %>% filter((substr(Country.name,1,8) == "Advanced" | substr(Country.name,1,4) == "Euro"
+                                                   | substr(Country.name,1,8) == "Emerging" | substr(Country.name,1,3) == "CIS"
+                                                   | substr(Country.name,1,6) == "Middle" | substr(Country.name,1,11) == "Sub-Saharan"
+                                                   | substr(Country.name,1,5) == "CEMAC" | substr(Country.name,1,5) == "WAEMU" 
+                                                   | substr(Country.name,1,7) == "Western" | substr(Country.name,1,4) == "ECCU")
+                                                  | !(is.na(X2009) & is.na(X2010) & is.na(X2011) & is.na(X2012) & is.na(X2013) & is.na(X2014) & is.na(X2015) & is.na(X2016)))
+
+
+```
+
+Creating a new column called category, this column will be filled with the category under which any country lies. For example - Advanced economies
+```{r}
+Selected_Indicators_Percent_of_GDP_filtered$Category <- Selected_Indicators_Percent_of_GDP_filtered$Country.name
+
+end_of_df <- "FALSE"
+i <- 1
+
+while (end_of_df == "FALSE") {
+  if (Selected_Indicators_Percent_of_GDP_filtered$Country.name[i] %>% is.na())
+  {
+    end_of_df <- "TRUE"
+  }
+  else
+    #  sprintf("not end of file for record # %s", i)
+  {
+    if (Selected_Indicators_Percent_of_GDP_filtered$X2009[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2010[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2011[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2012[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2013[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2014[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2015[i] %>% is.na() &
+        Selected_Indicators_Percent_of_GDP_filtered$X2016[i] %>% is.na())
+    {
+      save.country.category <- Selected_Indicators_Percent_of_GDP_filtered$Country.name[i]
+    }
+    else
+    {
+      Selected_Indicators_Percent_of_GDP_filtered$Category[i] <- save.country.category
+    }
+    i <- i + 1 
+  }
+}
+
+```
+
+
+Only saving the country rows and removing the category rows, as we now have grabbed the category values in a new column for all the countries
+```{r}
+Selected_Indicators_Percent_of_GDP_filtered <- Selected_Indicators_Percent_of_GDP_filtered %>% filter(!(Selected_Indicators_Percent_of_GDP_filtered$X2009 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2010 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2011 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2012 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2013 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2014 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2015 %>% is.na() &
+                                                                                                          Selected_Indicators_Percent_of_GDP_filtered$X2016 %>% is.na()))
+
+
+head(Selected_Indicators_Percent_of_GDP_filtered)
+```
+
+Bringing the category on the left before the data set is melted. And then melting the data set.
+```{r}
+Selected_Indicators_Percent_of_GDP_filtered <- Selected_Indicators_Percent_of_GDP_filtered[, c(1,10,2:9)]
+
+Selected_Indicators_Percent_of_GDP_long <- Selected_Indicators_Percent_of_GDP_filtered %>% gather("year", "BOP_Percent_of_GDP", 3:10)
+
+head(Selected_Indicators_Percent_of_GDP_long)
+```
+
+```{r}
+Selected_Indicators_Percent_of_GDP_long$year <- substr(Selected_Indicators_Percent_of_GDP_long$year, 2,5)
+
+Selected_Indicators_Percent_of_GDP_long$BOP_Percent_of_GDP <- as.numeric(Selected_Indicators_Percent_of_GDP_long$BOP_Percent_of_GDP)
+
+BOP_by_GDP_category_year_summarized <- Selected_Indicators_Percent_of_GDP_long %>% group_by(Category, year) %>% summarize(avg_percent_BOP=round(mean(BOP_Percent_of_GDP, na.rm = TRUE),2))
+
+ggplot(BOP_by_GDP_category_year_summarized, aes(x=year, y=avg_percent_BOP, fill=Category)) + geom_bar(position = "dodge", stat = "identity")
 ```
 
