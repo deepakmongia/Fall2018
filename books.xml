@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Books>
+  <Book>
+    <Name>The Leader Who Had No Title</Name>
+    <Author>Robin Sharma</Author>
+    <Attribute1>Highly motivating</Attribute1>
+    <Attribute2>Presented in the form of a story</Attribute2>
+    <Attribute3>Very captivating</Attribute3>
+  </Book>
+  <Book>
+    <Name>Meditations by Marcus Aurelius</Name>
+    <Author>Marucs Aurelius</Author>
+    <Attribute1>Spiritual</Attribute1>
+    <Attribute2>Gives the right perspective of life</Attribute2>
+    <Attribute3>it is like a guide to be used over lifetime</Attribute3>
+  </Book>
+  <Book>
+    <Name>Crucial Conversations</Name>
+    <Author>Kerry Patterson
+Joseph Grenny
+Ron McMillan
+Al Switzler</Author>
+    <Attribute1>Gives great tools to handle cruicial conversations</Attribute1>
+    <Attribute2>Helpful for people at any level or in any job</Attribute2>
+    <Attribute3></Attribute3>
+  </Book>
+</Books>
