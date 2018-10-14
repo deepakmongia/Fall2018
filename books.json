@@ -1,0 +1,25 @@
+{
+  "books": [
+    {
+      "Name": "The Leader Who Had No Title",
+      "Authors": "Robin Sharma",
+      "Attribute-1": "Highly motivating",
+      "Attribute-2": "Presented in the form of a story",
+      "Attribute-3": "Very captivating"
+    },
+    {
+      "Name": "Meditations by Marcus Aurelius",
+      "Authors": "Marucs Aurelius",
+      "Attribute-1": "Spiritual",
+      "Attribute-2": "Gives the right perspective of life",
+      "Attribute-3": "it is like a guide to be used over lifetime"
+    },
+    {
+      "Name": "Crucial Conversations",
+      "Authors": "Kerry Patterson",
+      "Attribute-1": "Gives great tools to handle cruicial conversations",
+      "Attribute-2": "Helpful for people at any level or in any job",
+      "Attribute-3": ""
+    }
+  ]
+}
