@@ -1,0 +1,56 @@
+---
+title: "Deepak Mongia - Data 607 Week 7 Assignment"
+author: "Deepak Mongia"
+date: "October 13, 2018"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+---
+
+This week is a starting point for web technologies and getting the data from the web for the Data 607 course for CUNY MSDS fall-2018.
+For this week, the assignment is:
+Pick three of your favorite books on one of your favorite subjects. At least one of the books should have more than one author. For each book, include the title, authors, and two or three other attributes that you find interesting.
+Take the information that you've selected about these three books, and separately create three files which store the book's information in HTML (using an html table), XML, and JSON formats (e.g. "books.html", "books.xml", and "books.json"). To help you better understand the different file structures, I'd prefer that you create each of these files "by hand" unless you're already very comfortable with the file formats.
+Write R code, using your packages of choice, to load the information from each of the three sources into separate R data frames. Are the three data frames identical?
+Your deliverable is the three source files and the R code. If you can, package your assignment solution up into an .Rmd file and publish to rpubs.com. [This will also require finding a way to make your three text files accessible from the web].
+
+
+Loading the packages:
+```{r, results = "hide", message=FALSE, warning=FALSE}
+library(XML)
+library(RCurl)
+library(jsonlite)
+library(kableExtra)
+```
+
+Loading the html table file - books.html from Github link into a data.frame:
+```{r}
+books.html.url <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/books.html"
+books.html.content <- getURL(books.html.url)
+
+books.html.df <- as.data.frame(readHTMLTable(books.html.content))
+
+books.html.df %>% kable() %>% kable_styling()
+```
+
+Loading the XML file - books.xml from Github link into a data.frame:
+```{r}
+books.xml.url <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/books.xml"
+books.xml.content <- getURL(books.xml.url)
+
+books.xml.df <- xmlToDataFrame(books.xml.content)
+
+books.xml.df %>% kable() %>% kable_styling()
+```
+
+Loading the JSON file - books.json from Github link into a data.frame:
+```{r}
+books.json.url <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/books.json"
+books.json.content <- getURL(books.json.url)
+
+books.json.df <- as.data.frame(fromJSON(books.json.content))
+
+books.json.df %>% kable() %>% kable_styling()
+```
+
