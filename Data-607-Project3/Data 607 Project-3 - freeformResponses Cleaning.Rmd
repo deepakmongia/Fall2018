@@ -1,0 +1,32 @@
+---
+title: "Data 607 Project-3 - freeformResponses Cleaning"
+author: "Deepak Mongia"
+date: "October 16, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+```
+
+```{r}
+getURL <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Data-607-Project3/freeformResponses.csv"
+free.form.response.df1 <- read.csv(getURL, header = TRUE, sep = ",")
+
+dim(free.form.response.df1)
+
+head(free.form.response.df1, 2)
+```
+
+Removing the columns which have all NA values
+```{r}
+free.form.response.df2 <- free.form.response.df1[, apply(free.form.response.df1, 2, function(x){any(!is.na(x))})]
+```
+
+Checking the counts of valid data elements under all the columns in the new dataframe
+```{r}
+sprintf("Total number of rows in the data.frame is: %s", nrow(free.form.response.df2))
+apply(free.form.response.df2, 2, function(x){sum(!(x == ""), na.rm = TRUE)})
+```
+
+
