@@ -1,0 +1,148 @@
+---
+title: "Data 607 Project-3 - freeformResponses Cleaning"
+author: "Deepak Mongia"
+date: "October 16, 2018"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+library(dplyr)
+library(stringr)
+```
+
+```{r}
+getURL <- "https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Data-607-Project3/freeformResponses.csv"
+free.form.response.df1 <- read.csv(getURL, header = TRUE, sep = ",")
+
+dim(free.form.response.df1)
+
+head(free.form.response.df1, 2)
+```
+
+Removing the columns which have all NA values
+```{r}
+free.form.response.df2 <- free.form.response.df1[, apply(free.form.response.df1, 2, function(x){any(!is.na(x))})]
+```
+
+Checking the counts of valid data elements under all the columns in the new dataframe
+```{r}
+sprintf("Total number of rows in the data.frame is: %s", nrow(free.form.response.df2))
+apply(free.form.response.df2, 2, function(x){sum(!(x == ""), na.rm = TRUE)})
+```
+
+```{r}
+KaggleMotivationFreeForm_vect <- free.form.response.df2$KaggleMotivationFreeForm[free.form.response.df2$KaggleMotivationFreeForm != ""]
+length(KaggleMotivationFreeForm_vect)
+
+CurrentJobTitleFreeForm_vect <- free.form.response.df2$CurrentJobTitleFreeForm[free.form.response.df2$CurrentJobTitleFreeForm != ""]
+length(CurrentJobTitleFreeForm_vect)
+
+any(is.na(free.form.response.df2$CurrentJobTitleFreeForm))
+
+MLToolNextYearFreeForm_vect <- free.form.response.df2$MLToolNextYearFreeForm[free.form.response.df2$MLToolNextYearFreeForm != ""]
+length(MLToolNextYearFreeForm_vect)
+MLToolNextYearFreeForm_vect
+
+MLMethodNextYearFreeForm_vect <- free.form.response.df2$MLMethodNextYearFreeForm[free.form.response.df2$MLMethodNextYearFreeForm != ""]
+length(MLMethodNextYearFreeForm_vect)
+
+LanguageRecommendationFreeForm_vect <- free.form.response.df2$LanguageRecommendationFreeForm[free.form.response.df2$LanguageRecommendationFreeForm != ""]
+length(LanguageRecommendationFreeForm_vect)
+
+JobSkillImportanceOtherSelect1FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect1FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect1FreeForm != ""]
+length(JobSkillImportanceOtherSelect1FreeForm_vect)
+
+JobSkillImportanceOtherSelect2FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect2FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect2FreeForm != ""]
+
+JobSkillImportanceOtherSelect3FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect3FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect3FreeForm != ""]
+
+PastJobTitlesFreeForm_vect <- free.form.response.df2$PastJobTitlesFreeForm[free.form.response.df2$PastJobTitlesFreeForm != ""]
+length(PastJobTitlesFreeForm_vect)
+
+WorkHardwareFreeForm_vect <- free.form.response.df2$WorkHardwareFreeForm[free.form.response.df2$WorkHardwareFreeForm != ""]
+
+SalaryChangeFreeForm_vect <- free.form.response.df2$SalaryChangeFreeForm[free.form.response.df2$SalaryChangeFreeForm != ""]
+
+TimeOtherSelectFreeForm_vect <- free.form.response.df2$TimeOtherSelectFreeForm[free.form.response.df2$TimeOtherSelectFreeForm != ""]
+length(TimeOtherSelectFreeForm_vect)
+
+
+## counts for programming being devoted time and its data
+
+sum(!is.na(str_extract(TimeOtherSelectFreeForm_vect, "(\\w*rogramming)|(\\w*oftware)|(\\w*lgorithm)|(\\w*coding)|(\\w*Coding)|(\\w*development)")))
+
+TimeOtherSelectFreeForm_vect[!is.na(str_extract(TimeOtherSelectFreeForm_vect, "(\\w*rogramming)|(\\w*oftware)|(\\w*lgorithm)|(\\w*Coding)|(\\w*development)"))]
+
+
+## counts for management being used based on time and its values
+sum(!is.na(str_extract(TimeOtherSelectFreeForm_vect, "\\w*anage")))
+TimeOtherSelectFreeForm_vect[!is.na(str_extract(TimeOtherSelectFreeForm_vect, "\\w*anage"))]
+
+
+```
+
+
+Creating a data.frame for just the non blank data from the relevant columns
+```{r}
+FreeForm_List <- list(KaggleMotivationFreeForm = KaggleMotivationFreeForm_vect, CurrentJobTitleFreeForm = CurrentJobTitleFreeForm_vect, MLToolNextYearFreeForm = MLToolNextYearFreeForm_vect, MLMethodNextYearFreeForm = MLMethodNextYearFreeForm_vect, LanguageRecommendationFreeForm = LanguageRecommendationFreeForm_vect, JobSkillImportanceOtherSelect1FreeForm = JobSkillImportanceOtherSelect1FreeForm_vect, JobSkillImportanceOtherSelect2FreeForm = JobSkillImportanceOtherSelect2FreeForm_vect, JobSkillImportanceOtherSelect3FreeForm = JobSkillImportanceOtherSelect3FreeForm_vect, PastJobTitlesFreeForm = PastJobTitlesFreeForm_vect, WorkHardwareFreeForm = WorkHardwareFreeForm_vect, SalaryChangeFreeForm = SalaryChangeFreeForm_vect, TimeOtherSelectFreeForm = TimeOtherSelectFreeForm_vect)
+
+
+FreeForm_df <- FreeForm_List %>% lapply(`length<-`, max(lengths(FreeForm_List))) %>% as.data.frame()
+
+head(FreeForm_df)
+
+
+```
+
+
+Now checking the job titles of the people who selected the "other" option from the job title form, and hence fall under the free form - CurrentJobTitleFreeForm:
+```{r}
+CurrentJobTitleFreeForm_vect <- tolower(CurrentJobTitleFreeForm_vect)
+CurrentJobTitleFreeForm_vect %>% as.factor() %>% levels()
+
+### Data related jobs
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*business intelligence)|(\\w*bi)|(\\w*data)|(\\w*analyst)|(\\w*big data)|(\\w*dba)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*business intelligence)|(\\w*bi)|(\\w*data)|(\\w*analyst)|(\\w*big data)|(\\w*dba)"))]
+
+
+### software related jobs
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*application)|(\\w*computer)|(\\w*software)|(^it)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*application)|(\\w*computer)|(\\w*software)|(^it)"))]
+
+### leadership using data science
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*director)|(\\w*cto)|(\\w*ceo)|(\\w*cfo)|(\\w*chief)|(\\w*vp)|(\\w*head of)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*director)|(\\w*cto)|(\\w*ceo)|(\\w*cfo)|(\\w*chief)|(\\w*vp)|(\\w*head of)"))]
+
+### Teching / Education
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*professor)|(\\w*teach)|(\\w*educat)|(\\w*faculty)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*professor)|(\\w*teach)|(\\w*educat)|(\\w*faculty)"))]
+
+### Student
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*student)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*student)"))]
+
+### Finance related
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*financ)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*financ)"))]
+
+### Quant / maths related
+sum(!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*quant)|(\\w*math)")))
+CurrentJobTitleFreeForm_vect[!is.na(str_extract(CurrentJobTitleFreeForm_vect, "(\\w*quant)|(\\w*math)"))]
+
+```
+
+So, that clearly shows that the other job title selected in the survey falls mainly under below 7 categories:
+
+1) Data Related jobs (like data engineer, data analytics, etc.)
+
+2) Software related jobs
+
+3) Executive or Top leadership positions in any organization / Institution (like ceo, cfo, head of engineering, etc.)
+
+4) Teaching / Education
+
+5) Student
+
+6) Finance related job profiles
+
+7) Quantitative or Maths related job profiles
