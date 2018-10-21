@@ -289,6 +289,9 @@ Kaggle.Multi %>%
 
 Job title distribution check in the free response survey:
 ```{r, echo=FALSE}
+
+CurrentJobTitleFreeForm_vect <- tolower(CurrentJobTitleFreeForm_vect)
+
 #1. DATA RELATED OTHER JOB TITLES
 func.data.job <- function(x) {
   if(!is.na(str_extract(x,"(.*business intelligence.*)|(.*bi.*)|(.*data.*)|(.*analyst.*)|(.*big data.*)|(.*dba.*)")))
@@ -415,7 +418,7 @@ df_other_job_title <- rbind(df_other_job_title, df_job_manager)
 kable(df_other_job_title)
 ```
 
-
+We could figure out how the 59 % of responses in the CurrentJobTitleFreeForm form fell under the above given categories by our data analysis. The remaining 41% of the job titles under the free form CurrentJobTitleFreeForm are not consistent enough to show any other trend. This is because of any text allowed in the free form and the respondents can write any text, hence not giving proper details to show any relevance. 
 
 ####Salary Data
 
