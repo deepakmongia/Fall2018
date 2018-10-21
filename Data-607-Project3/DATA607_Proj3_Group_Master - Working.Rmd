@@ -176,7 +176,7 @@ func.manage <- function(x) {
 
 TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.manage))
 
-#3. (\\w*data)
+#3. DATA RELATED ACTIVITIES
 func.data <- function(x) {
   if(!is.na(str_extract(x,".*data.*")))
     return("data related")
@@ -189,7 +189,7 @@ func.data <- function(x) {
 TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.data))
 length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "data related"])
 
-# 4 (\\w*research)|(\\w*Research)|(\\w*Reserch)|(\\w*reserch)
+# 4 RESEARCH RELATED
 func.research <- function(x) {
   if(!is.na(str_extract(x,"(.*research.*)|(.*Research.*)|(.*Reserch.*)|(.*reserch.*)")))
     return("research related")
@@ -201,7 +201,7 @@ func.research <- function(x) {
 
 TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.research))
 
-# 5 CODING / SOFTWARE (\\w*rogramming)|(\\w*oftware)|(\\w*lgorithm)|(\\w*coding)|(\\w*Coding)|(\\w*develop)
+# 5 CODING / SOFTWARE 
 
 func.software <- function(x) {
   if(!is.na(str_extract(x,"(\\w*rogramming)|(\\w*oftware)|(\\w*lgorithm)|(\\w*coding)|(\\w*Coding)|(\\w*develop)")))
