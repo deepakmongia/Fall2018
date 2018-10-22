@@ -1,0 +1,802 @@
+---
+title: "Data 607 Project 3"
+author: "Alice Friedman, Jeff Littlejohn, Deepak Mongia, Eleanor Romero"
+date: "October 16, 2018"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 2
+    toc_float: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+#Introduction
+
+An October 2012 Harvard Business Review [article](https://hbr.org/2012/10/data-scientist-the-sexiest-job-of-the-21st-century) called Data Scientist the "sexiest job of the 21st century." In 21st-century time, 2012 is eons ago. Glassdoor, the popular career and company review site, has [named](https://www.kdnuggets.com/2018/01/glassdoor-data-scientist-best-job-america-3years.html) Data Scientist the best job in America for three years running. We hear tales of huge starting salaries and high demand for talent. Still, for a number of reasons, we're cautious.
+
+[![Sexy Job Time]](https://github.com/littlejohnjeff/DATA607_Project3/blob/master/sexy_data_scientist.png)
+
+First, data scientist jobs are prone to the catch-22 prevalent in many industries - all jobs seem to want a couple years of experience in the field. How do you get experience if there are no seemingly true entry-level jobs?
+
+Second, data science degree programs and boot camps are popping up faster the Chick-fil-A franchises. Berkeley's brand-new undergraduate Data Science program [received](https://data.berkeley.edu/news/uc-berkeleys-data-science-major-takes) nearly 800 major pre-declarations as soon as it was made available, which is unprecedented for a new academic program. (They have to use a giant lecture hall (below) for the first course in the sequence.) Competition for entry-level positions is already competitive and growing. It's going to get crazier.
+[![Big Classroom]](https://github.com/littlejohnjeff/DATA607_Project3/blob/master/data8-fall2018_0.jpg)
+
+Also, job listings have not evolved to reflect the growth in data science-specific graduate programs. Many open positions list wanting graduate degrees in statistics or specific areas of computer science or PhD degrees in quantitative areas, echoing the backgrounds of many early Data Science industry leaders. In larger companies, our resumes may not make it past HR to the hiring managers. 
+
+Finally, many of us are older students who already have good careers and have family obligations and outside lives. We're very interested in data science, but we seek interesting, rewarding work that allows for balance. Our exploration will touch on this.
+
+In short, as first or second semester students in a M.S. in Data Science program, we want to ensure we're learning the skills future employers want and that we know how to demonstrate those abilities in projects and portfolios. While some of us might just apply the skills we learn in the pprogram to our current jobs, we want to have options.
+
+To further our understanding of the needed skills - and fulfill the requirements of this project - we looked at three different sets of data related to data science skills. We start with a discussion of the results of a recent look at data science job listings. Next, two members of our team sliced and diced data from a large survey of data scientists gathered by [Kaggle](https://www.kaggle.com/), the machine learning contest and education site. Their analysis is shared. Finally, we built our own survey using a free online tool and elicited responses from data science leaders at companies at which we are interested in eventually seeking employment. Results of that survey are analyzed.
+
+\pagebreak
+
+##Setup
+```{r, results="hide", message=FALSE, warning=FALSE}
+library(knitr)
+library(kableExtra)
+library(prettydoc)
+library(RCurl)
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(varhandle)
+library(stringr)
+library(tidyr)
+library(tidyverse)
+
+
+library(RMySQL)
+library(plotly)
+```
+
+\pagebreak
+
+#Towards Data Science: Job Listings Scraping Discussion
+
+Connect to the database
+```{r connect, echo=TRUE, error=TRUE}
+connection <- dbConnect(MySQL(),
+              user="",
+              password="",
+              dbname="test",
+              host="localhost"
+)
+```
+
+##Data Scientist Job Listing
+What are employers looking for?
+
+Methodology:
+
+For the first chart, we searched job listings on LinkedIn, Indeed, SimplyHired, Monster, and AngelList on October 16, 2018 and used the keyword data scientist. The chart below shows how many data scientist jobs each website listed.
+
+```{r Q3a, eval=TRUE, echo=TRUE, warning=FALSE, error=TRUE}
+qry_jobs <- "SELECT JobSites, Count as Listing FROM DS_JobList order by Count desc"
+
+query1 <- dbGetQuery(connection, qry_jobs)
+
+query1$JobSites <- factor(query1$JobSites, levels = unique(query1$JobSites)[order(query1$Listing, decreasing = TRUE)])
+
+p <- plot_ly(data = query1, y = ~Listing, x = ~JobSites,
+  name = "Data Scientist Job Listing",
+  type = "bar", marker = list(color = "red")
+)
+
+p
+```
+
+##General Skills
+The most frequent general data scientist skills the employers are looking for.
+
+Methodology:
+
+For the second and third chart, we used the author's provided data set in google sheet and loaded them in our MySQL database in a normalized format. We sum the keywords occurrences and averaged them across the job listing sites.
+
+
+```{r, Q3b, eval=TRUE, echo=TRUE, warning=FALSE, error=TRUE}
+
+qry_dsjobs <- "SELECT Keyword, sum(LinkedIn + Indeed + SimplyHired + Monster)/4 as Ave_Listing from DS_GenSkills group by Keyword"
+
+query <- dbGetQuery(connection, qry_dsjobs)
+
+query$Keyword <- factor(query$Keyword, levels = unique(query$Keyword)[order(query$Ave_Listing, decreasing = TRUE)])
+
+#knitr::kable(query)
+
+p <- plot_ly(data = query, y = ~Ave_Listing, x = ~Keyword,
+  name = "General Skills in Data Scientist Job Listing",
+  type = "bar", marker = list(color = "blue")
+)
+
+p
+```
+
+The chart shows that generally, employers are looking for data scientists who are very good if not proficient in analysis, machine learning and statistics just to name a few. Computer science background and communication completes the top 5 general skills requirements.
+
+## Technology Skills
+The top 20 specific languages, libraries, and tech tools employers are looking for data scientists to have experience with.
+    
+```{r, Q3c, eval=TRUE, echo=TRUE, warning=FALSE, error=TRUE}
+qry_dsts <- "SELECT Keyword, `Avg %` as Ave_Perc FROM DS_SoftSkills order by 2 desc limit 20"
+
+query2 <- dbGetQuery(connection, qry_dsts)
+
+query2$Keyword <- factor(query2$Keyword, levels = unique(query2$Keyword)[order(query2$Ave_Perc, decreasing = TRUE)])
+
+p <- plot_ly(data = query2, y = ~Ave_Perc, x = ~Keyword,
+  name = "Top 20 Technology Skills in Data Scientist Job Listing",
+  type = "bar", marker = list(color = "green")
+)
+
+p
+```
+
+Among these 20 top technology skills, Python and R are currently the most in-demand language, followed by SQL. Seeing all of these, we know that at CUNY SPS, we are learning the tools and acquiring the skills that are current and in-demand in the IT workplace.
+
+\pagebreak
+
+#Kaggle ML and Data Science Survey
+
+Kaggle conducted a survey of more than 16,000 data scientists in 2017. Data used in the following analysis is pulled from https://www.kaggle.com/kaggle/kaggle-survey-2017.
+
+```{r}
+Kaggle.Multi <- read.csv("https://raw.githubusercontent.com/aliceafriedman/DATA607_Proj3/master/multipleChoiceResponses.csv", sep=",", header = TRUE)
+```
+
+##How much time do you spend on the following types of tasks?
+One way to evaluate how much valuable different data science skills are is to determine how much time people spend using them.
+
+The following analysis shows that for the survey respondents as a whole, the most important skills are: 
+1. Gathering data
+
+2. Model building
+
+3. Visualizing data
+
+4. Finding insights
+
+5. Putting work into production (e.g. running versioning control)
+
+
+```{r}
+timeSpent <- Kaggle.Multi %>% 
+  select(
+  TimeGatheringData,
+  TimeModelBuilding,
+  TimeProduction,
+  TimeVisualizing,
+  TimeFindingInsights,
+  TimeOtherSelect) %>% 
+  rename(
+  'Gathering Data' = TimeGatheringData,
+  'Modeling' = TimeModelBuilding,
+  'Production' = TimeProduction,
+  'Visualizing' = TimeVisualizing,
+  'Finding Insights' = TimeFindingInsights,
+  'Other' = TimeOtherSelect) %>% 
+  gather(key = "Skill", value = "PercTimeSpent", na.rm = TRUE) %>% glimpse()
+  
+timeSpent %>% 
+  group_by(Skill) %>% 
+  summarize("avg" = mean(PercTimeSpent), "Median % Time Spent"= median(PercTimeSpent)) %>% 
+  arrange(desc(avg)) %>% 
+  rename('Average % Time Spent' = avg) %>% 
+  kable(digits = 0)
+#  kable_styling(bootstrap_options = "responsive")
+```
+
+Along with the multiple choice question survey, the respondents were also given an option of submitting other as an option and an open text box where they could type any text in case they selected other. For example, for the question regarding: where do the respondents spend their time. There were multiple options in this - Gathering Data, Model Building, Production, Visualizing, Finding Insights and Other. In the other option, there was an open text box where they filled the relevant information.
+
+We checked for some relevant data in the free user form response in a coupld of fileds like - Job title using data science (CurrentJobTitleFreeForm) and time the respondents spent under the other option (TimeOtherSelectFreeForm
+). We did some analysis below around this free form data set - freeformResponses.csv
+
+```{r}
+getURL <- "https://raw.githubusercontent.com/aliceafriedman/DATA607_Proj3/master/freeformResponses.csv"
+free.form.response.df1 <- read.csv(getURL, header = TRUE, sep = ",")
+dim(free.form.response.df1)
+#Keeping only columns which have at least some data, and removing all the columns which do not have any data
+free.form.response.df2 <- free.form.response.df1[, apply(free.form.response.df1, 2, function(x){any(!is.na(x))})]
+dim(free.form.response.df2)
+apply(free.form.response.df2, 2, function(x){sum(!(x == ""), na.rm = TRUE)})
+```
+
+Digging further into the free form response data set to get more insights. By digging and analyzing further, we could see some of the common texts being used in the 2 relevant coulumns - time spent (other) and job title (other). But most of them are random values, so we can at least show some data trends in these 2 other columns which are relevant here.
+
+```{r, echo=FALSE}
+# Creating vectors
+KaggleMotivationFreeForm_vect <- free.form.response.df2$KaggleMotivationFreeForm[free.form.response.df2$KaggleMotivationFreeForm != ""]
+CurrentJobTitleFreeForm_vect <- free.form.response.df2$CurrentJobTitleFreeForm[free.form.response.df2$CurrentJobTitleFreeForm != ""]
+MLToolNextYearFreeForm_vect <- free.form.response.df2$MLToolNextYearFreeForm[free.form.response.df2$MLToolNextYearFreeForm != ""]
+MLMethodNextYearFreeForm_vect <- free.form.response.df2$MLMethodNextYearFreeForm[free.form.response.df2$MLMethodNextYearFreeForm != ""]
+LanguageRecommendationFreeForm_vect <- free.form.response.df2$LanguageRecommendationFreeForm[free.form.response.df2$LanguageRecommendationFreeForm != ""]
+JobSkillImportanceOtherSelect1FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect1FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect1FreeForm != ""]
+JobSkillImportanceOtherSelect2FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect2FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect2FreeForm != ""]
+JobSkillImportanceOtherSelect3FreeForm_vect <- free.form.response.df2$JobSkillImportanceOtherSelect3FreeForm[free.form.response.df2$JobSkillImportanceOtherSelect3FreeForm != ""]
+PastJobTitlesFreeForm_vect <- free.form.response.df2$PastJobTitlesFreeForm[free.form.response.df2$PastJobTitlesFreeForm != ""]
+WorkHardwareFreeForm_vect <- free.form.response.df2$WorkHardwareFreeForm[free.form.response.df2$WorkHardwareFreeForm != ""]
+SalaryChangeFreeForm_vect <- free.form.response.df2$SalaryChangeFreeForm[free.form.response.df2$SalaryChangeFreeForm != ""]
+TimeOtherSelectFreeForm_vect <- free.form.response.df2$TimeOtherSelectFreeForm[free.form.response.df2$TimeOtherSelectFreeForm != ""]
+FreeForm_List <- list(KaggleMotivationFreeForm = KaggleMotivationFreeForm_vect, CurrentJobTitleFreeForm = CurrentJobTitleFreeForm_vect, MLToolNextYearFreeForm = MLToolNextYearFreeForm_vect, MLMethodNextYearFreeForm = MLMethodNextYearFreeForm_vect, LanguageRecommendationFreeForm = LanguageRecommendationFreeForm_vect, JobSkillImportanceOtherSelect1FreeForm = JobSkillImportanceOtherSelect1FreeForm_vect, JobSkillImportanceOtherSelect2FreeForm = JobSkillImportanceOtherSelect2FreeForm_vect, JobSkillImportanceOtherSelect3FreeForm = JobSkillImportanceOtherSelect3FreeForm_vect, PastJobTitlesFreeForm = PastJobTitlesFreeForm_vect, WorkHardwareFreeForm = WorkHardwareFreeForm_vect, SalaryChangeFreeForm = SalaryChangeFreeForm_vect, TimeOtherSelectFreeForm = TimeOtherSelectFreeForm_vect)
+FreeForm_df <- FreeForm_List %>% lapply(`length<-`, max(lengths(FreeForm_List))) %>% as.data.frame()
+################ FORMULATING THE TIME SPENT IN OTHER ACTIVITITES ########################
+#1. MEETING ACTIVITIES
+func.admin <- function(x) {
+  if(!is.na(str_extract(x,"(.*admin.*)|(.*meeting.*)|(.*discuss.*)")))
+    return("admin/meeting/discussion")
+  else
+  {
+    return(as.character(x))
+  }
+}
+TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.admin))
+#2.MANAGEMENT RELATED
+func.manage <- function(x) {
+  if(!is.na(str_extract(x,".*anage.*")))
+    return("management related")
+  else
+  {
+    return(as.character(x))
+  }
+}
+TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.manage))
+#3. DATA RELATED ACTIVITIES
+func.data <- function(x) {
+  if(!is.na(str_extract(x,".*data.*")))
+    return("data related")
+  else
+  {
+    return(as.character(x))
+  }
+}
+TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.data))
+length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "data related"])
+# 4 RESEARCH RELATED
+func.research <- function(x) {
+  if(!is.na(str_extract(x,"(.*research.*)|(.*Research.*)|(.*Reserch.*)|(.*reserch.*)")))
+    return("research related")
+  else
+  {
+    return(as.character(x))
+  }
+}
+TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.research))
+# 5 CODING / SOFTWARE 
+func.software <- function(x) {
+  if(!is.na(str_extract(x,"(\\w*rogramming)|(\\w*oftware)|(\\w*lgorithm)|(\\w*coding)|(\\w*Coding)|(\\w*develop)")))
+    return("software application related")
+  else
+  {
+    return(as.character(x))
+  }
+}
+TimeOtherSelectFreeForm_vect <- unlist(lapply(TimeOtherSelectFreeForm_vect, func.software))
+### NOW CREATING A TABLE
+length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "software application related"])
+df_software <- data.frame(timespent = c("software application related"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "software application related"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "software application related"])/length(TimeOtherSelectFreeForm_vect)))
+df_meeting <- data.frame(timespent = c("admin/meeting/discussion"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "admin/meeting/discussion"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "admin/meeting/discussion"])/length(TimeOtherSelectFreeForm_vect)))
+df_management <- data.frame(timespent = c("management related"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "management related"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "management related"])/length(TimeOtherSelectFreeForm_vect)))
+df_data <- data.frame(timespent = c("data related"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "data related"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "data related"])/length(TimeOtherSelectFreeForm_vect)))
+df_research <- data.frame(timespent = c("research related"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "research related"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect == "research related"])/length(TimeOtherSelectFreeForm_vect)))
+df_other <- data.frame(timespent = c("other of other"), count_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect != "research related" & TimeOtherSelectFreeForm_vect != "software application related" & TimeOtherSelectFreeForm_vect != "admin/meeting/discussion" & TimeOtherSelectFreeForm_vect != "management related" & TimeOtherSelectFreeForm_vect != "data related"])), percent_occurence = c(length(TimeOtherSelectFreeForm_vect[TimeOtherSelectFreeForm_vect != "research related" & TimeOtherSelectFreeForm_vect != "software application related" & TimeOtherSelectFreeForm_vect != "admin/meeting/discussion" & TimeOtherSelectFreeForm_vect != "management related" & TimeOtherSelectFreeForm_vect != "data related"])/length(TimeOtherSelectFreeForm_vect)))
+df_software
+df_meeting
+df_other_time_spent <- rbind(df_software, df_meeting)
+df_other_time_spent <- rbind(df_other_time_spent, df_management)
+df_other_time_spent <- rbind(df_other_time_spent, df_data)
+df_other_time_spent <- rbind(df_other_time_spent, df_research)
+df_other_time_spent <- rbind(df_other_time_spent, df_other)
+```
+
+###Displaying the break-ups within the other time spent:
+```{r}
+kable(df_other_time_spent)
+```
+
+
+##At work, what proportion of your analytics projects incorporate data visualization?	
+Another way to determine how important a particular skill is to data scientsists is to look at how much of working data scientists' job uses that skill. One question the survey asks is, "At work, what proportion of your analytics projects incorporate data visualization?"
+
+As the analysis shows below, the largest number of response by far is that more than three-quarters of all the respondents's assigned projects incorporate data visualization. Although the median response is that only 10\% of time is spent on this skill, data visualization must be an imrportant skill nonetheless!
+
+
+```{r}
+PercOrder <- c(
+"None",
+"10-25% of projects",
+"26-50% of projects",
+"51-75% of projects",
+"76-99% of projects",
+"100% of projects")
+Kaggle.Multi$WorkDataVisualizations <- factor(Kaggle.Multi$WorkDataVisualizations, PercOrder)
+Kaggle.Multi %>% 
+  filter(WorkDataVisualizations!="") %>%
+  mutate(WorkDataVisualizations = fct_recode(WorkDataVisualizations,
+    "10-25%" = "10-25% of projects",
+    "26-50%" = "26-50% of projects",
+    "51-75%" = "51-75% of projects",
+    "76-100%" = "76-99% of projects",
+    "76-100%" = "100% of projects"
+  )) %>% 
+  ggplot(aes(WorkDataVisualizations))+
+  geom_bar(aes(fill=WorkDataVisualizations))+
+  theme(axis.text.x=element_text(angle = 60, hjust = 1))+
+  labs(title = "At work, what proportion of your analytics projects\n incorportate data visualizations?",
+       x = "Percent of Projects Incorporating Visualization",
+       y = "Count")
+```
+
+##Who responded to this survey?
+
+###Job Title
+```{r}
+Kaggle.Multi %>% 
+  filter(CurrentJobTitleSelect!="") %>%
+  mutate(CurrentJobTitleSelect = CurrentJobTitleSelect %>% fct_infreq() %>% fct_rev()) %>% 
+  ggplot(aes(fct_relevel(CurrentJobTitleSelect, "Other")))+
+  geom_bar(aes(fill=CurrentJobTitleSelect))+
+  theme(axis.text.x=element_text(angle = 60, hjust = 1), legend.position="none")+
+  labs(title = "Select the option that's most similar to your current job/professional \ntitle (or most recent title if retired)",
+       x= "Job Title",
+       y = "Count")
+```
+
+Job title distribution check in the free response survey:
+```{r, echo=FALSE}
+CurrentJobTitleFreeForm_vect <- tolower(CurrentJobTitleFreeForm_vect)
+#1. DATA RELATED OTHER JOB TITLES
+func.data.job <- function(x) {
+  if(!is.na(str_extract(x,"(.*business intelligence.*)|(.*bi.*)|(.*data.*)|(.*analyst.*)|(.*big data.*)|(.*dba.*)")))
+    return("data related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.data.job))
+#2. SOFTWARE RELATED OTHER JOB TITLES
+func.software.jobs <- function(x) {
+  if(!is.na(str_extract(x,"(.*application.*)|(.*computer.*)|(.*software.*)|(^it.*)|(.*test.*)|(.*system.*)|(.*information.*)|(.*project.*)")))
+    return("software related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.software.jobs))
+#3. EXECUTIVE LEADERSHIP USING DATA SCIENCE
+func.executive.leadership <- function(x) {
+  if(!is.na(str_extract(x,"(.*director.*)|(.*cto.*)|(.*ceo.*)|(.*cfo.*)|(.*chief.*)|(.*vp.*)|(.*head of.*)")))
+    return("executive leadership related")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.executive.leadership))
+# 4 TEACHING PROFILES
+func.teaching.jobs <- function(x) {
+  if(!is.na(str_extract(x,"(.*professor.*)|(.*teach.*)|(.*educat.*)|(.*faculty.*)")))
+    return("teaching related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.teaching.jobs))
+# 5 STUDENT
+func.student <- function(x) {
+  if(!is.na(str_extract(x,"(.*student.*)|(.*graduate.*)")))
+    return("student")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.student))
+# 6 FINANCE RELATED JOBS
+func.finance.jobs <- function(x) {
+  if(!is.na(str_extract(x,"(.*financ.*)")))
+    return("finance related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.finance.jobs))
+# 7 QUANT / MATHS RELATED JOBS
+func.math.jobs <- function(x) {
+  if(!is.na(str_extract(x,"(.*quant.*)|(.*math.*)")))
+    return("math related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.math.jobs))
+# 8 MANAGER RELATED JOBS
+func.manage.jobs <- function(x) {
+  if(!is.na(str_extract(x,"(.*manage.*)")))
+    return("manager related jobs")
+  else
+  {
+    return(as.character(x))
+  }
+}
+CurrentJobTitleFreeForm_vect <- unlist(lapply(CurrentJobTitleFreeForm_vect, func.manage.jobs))
+df_job_data <- data.frame(job.category = c("data related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "data related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "data related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_software <- data.frame(job.category = c("software related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "software related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "software related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_executive <- data.frame(job.category = c("executive leadership related"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "executive leadership related"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "executive leadership related"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_teaching <- data.frame(job.category = c("teaching related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "teaching related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "teaching related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_student <- data.frame(job.category = c("student"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "student"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "student"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_finance <- data.frame(job.category = c("finance related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "finance related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "finance related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_math <- data.frame(job.category = c("math related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "math related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "math related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_job_manager <- data.frame(job.category = c("manager related jobs"), count_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "manager related jobs"])), proportion_occurence = c(length(CurrentJobTitleFreeForm_vect[CurrentJobTitleFreeForm_vect == "manager related jobs"])/length(CurrentJobTitleFreeForm_vect)))
+df_other_job_title <- rbind(df_job_data, df_job_software)
+df_other_job_title <- rbind(df_other_job_title, df_job_executive)
+df_other_job_title <- rbind(df_other_job_title, df_job_teaching)
+df_other_job_title <- rbind(df_other_job_title, df_job_student)
+df_other_job_title <- rbind(df_other_job_title, df_job_finance)
+df_other_job_title <- rbind(df_other_job_title, df_job_math)
+df_other_job_title <- rbind(df_other_job_title, df_job_manager)
+```
+
+###Distribution within the other category of the job title:
+```{r}
+kable(df_other_job_title)
+```
+
+We could figure out how the 59 % of responses in the CurrentJobTitleFreeForm form fell under the above given categories by our data analysis. The remaining 41% of the job titles under the free form CurrentJobTitleFreeForm are not consistent enough to show any other trend. This is because of any text allowed in the free form and the respondents can write any text, hence not giving proper details to show any relevance. 
+
+###Salary Data
+
+This data requires a bit of munging, as salaries have been reported in several currencies, and a quick look at the repsonses seems to indicate that many individuals have entered there salaries in "thousands" whereas others have entered it in dollars. Some of the responses are in the millions. Are these liars, or just very well paid survey respondents?
+
+To address the former, we will filter by responses reported in USD. To address the two latter, we have a options:
+
+1. Ignore outliers (e.g. responses less than \$1000, and more than \$1,000,000)
+
+2.  Assume that everyone is telling the truth about their salaries
+
+3.  Assume that responses less than \$1000 are reporting in thousands (e.g. a response of $87 is intended to mean a salary of \$87,000, something which would be expected based on overall salary data for data scientists)
+
+4. Some combination of the above, taking into account known salary distributions for particular titles.
+
+The data munging to access US reported salaries also must take into account that data has been entered in a varirty of formats, resulting in data that cannot be easily converted to numeric.
+
+First, let's investigate the data to see which of these options is most reasonable.
+
+```{r}
+USSalaries <- Kaggle.Multi %>% filter(CompensationCurrency=="USD") %>% 
+  select(CompensationAmount) %>% 
+#First, we must unfactor the data using the varhandle library
+  mutate(CompensationAmount = unfactor(CompensationAmount), 
+#Then, we must remove all commas, which are included in some, but not all, data entries before we can finally convert to numeric
+         CompensationAmount = str_remove_all(CompensationAmount,","),
+         CompensationAmount = as.numeric(CompensationAmount))
+quantile(USSalaries[[1]], na.rm = TRUE)
+```
+
+The entry "9999999" seems obviously to be a false entry, and a number of the other outliers seems implausible as well. How many reported salaries are more than \$1M?
+
+```{r}
+USSalariesTest <- USSalaries %>% filter(USSalaries > 1000000)
+USSalariesTest
+```
+
+Only 3! Seems plausible that 2 people out of more than 16,000 respondents could earn more than $1M, I will assume those are real entries. I will exclude the "9999999" entry, and rerun the results.
+
+```{r}
+USSalaries <- USSalaries %>% filter(USSalaries != 9999999)
+quantile(USSalaries[[1]], na.rm = TRUE)
+```
+
+####How many people report less than $1000 in salary?
+```{r}
+USSalariesTest2 <- USSalaries %>% filter(USSalaries >0 & USSalaries < 1000)
+USSalariesTest2
+```
+
+Since the number of entries less than \$1000 is small (12), they will not meaningfully impact the analysis. We can proceed under the (possibly incorrect) assumption that all data except 9999999 is a valid entry. The below histogram produces a median salary roughly in line with what we would expect to see for data analytics roles, which confirms that we should proceed.
+
+```{r}
+USSalaries <- USSalaries %>% filter(USSalaries < 9999999)
+quantile(USSalaries[[1]], na.rm = TRUE)
+ggplot(USSalaries, aes(USSalaries[[1]])) + 
+  geom_histogram(binwidth = 25000)
+                                    
+```
+
+##Analysis of Skills by Salary, Job Satisfaction
+The Kaggle dataset analyzes over 16,000 respondents from multiple countries. Are the most important skills the same across these variables?
+
+###Time Spent by Skill by Salary
+
+Limiting our data to responses by US\$ for comparison's sake,  we will perform an analysis of the previous survey response after creating a factor for respondents' salaries by quantile.
+
+We will create levels from the numeric data using the ```cut``` function.
+```{r}
+USD <- Kaggle.Multi %>% 
+  mutate(CompensationAmount = as.numeric(as.numeric(levels(CompensationAmount)[CompensationAmount])),
+         CompensationAmount = ifelse(CompensationAmount < 100, CompensationAmount*1000, CompensationAmount)) %>%  
+  filter(CompensationCurrency=="USD",
+         CompensationAmount < 9999999) 
+quantile(USD$CompensationAmount, na.rm = TRUE)
+```
+```{r}
+#Create levels using cut()
+USD <- USD %>% select(  
+  TimeGatheringData,
+  TimeModelBuilding,
+  TimeProduction,
+  TimeVisualizing,
+  TimeFindingInsights,
+  TimeOtherSelect,
+  CompensationAmount) %>% 
+  mutate(IncomeLevel = cut(x=CompensationAmount, breaks = c(0, 60000, 96000, 137500, 2500000))) 
+levels(USD$IncomeLevel) <- c("Low", "Medium", "High", "Very_high")
+```
+```{r}
+timeSpentByUSDSalary <- USD %>% 
+  rename(
+  'Gathering Data' = TimeGatheringData,
+  'Modeling' = TimeModelBuilding,
+  'Production' = TimeProduction,
+  'Visualizing' = TimeVisualizing,
+  'Finding Insights' = TimeFindingInsights,
+  'Other' = TimeOtherSelect) %>% 
+  gather(key="Skill", value="PercTimeSpent", -CompensationAmount, -IncomeLevel, na.rm = TRUE) 
+timeSpentByUSDSalary%>% 
+  group_by(Skill, IncomeLevel) %>% 
+  summarize("avg" = mean(PercTimeSpent), "Median % Time Spent"= median(PercTimeSpent)) %>% 
+  arrange(Skill, IncomeLevel) %>% 
+  rename('Average % Time Spent' = avg) %>% 
+  kable(digits = 0) %>% 
+  kable_styling(bootstrap_options = "responsive")
+```
+
+These results are remarkably consistent across the income levels, althought the lowest earners seem to spend less time gathering data than other groups.
+  
+
+##Job Skills by Job Satisfaction
+
+What about job satisfaction? Do more satisfied workers spend more time on certain parts of the job?
+
+```{r}
+timeSpentBySat <- Kaggle.Multi %>% select(  
+    TimeGatheringData,
+    TimeModelBuilding,
+    TimeProduction,
+    TimeVisualizing,
+    TimeFindingInsights,
+    TimeOtherSelect,
+    JobSatisfaction) %>% 
+  rename(
+    'Gathering Data' = TimeGatheringData,
+    'Modeling' = TimeModelBuilding,
+    'Production' = TimeProduction,
+    'Visualizing' = TimeVisualizing,
+    'Finding Insights' = TimeFindingInsights,
+    'Other' = TimeOtherSelect) %>% 
+  gather(key="Skill", value="PercTimeSpent", -JobSatisfaction, na.rm = TRUE) %>% 
+  mutate(JobSatisfaction = fct_recode(JobSatisfaction,
+    "Low" = "1 - Highly Dissatisfied",
+    "Low" = "2",
+    "Low" = "3",
+    "Medium" = "4",
+    "Medium" = "5",
+    "Medium" = "6",
+    "Medium" = "7",
+    "High" = "8",
+    "High" = "9",
+    "High" = "10 - Highly Satisfied",
+    "NA" = "",
+    "NA" = "I prefer not to share")) %>% 
+  filter(!is.na(JobSatisfaction), 
+         JobSatisfaction !="NA")
+levels(timeSpentBySat$JobSatisfaction) <- c("NA", "Low", "Medium", "High")
+```
+
+```{r}
+timeSpentBySat%>% 
+  group_by(Skill, JobSatisfaction) %>% 
+  summarize("avg" = mean(PercTimeSpent), "Median % Time Spent"= median(PercTimeSpent)) %>% 
+  arrange(Skill, JobSatisfaction) %>% 
+  rename('Average % Time Spent' = avg) %>% 
+  kable(digits = 0) %>% 
+  kable_styling(bootstrap_options = "responsive")
+```
+
+Interestingly, the least satisfied workers also seems to spend the most time gathering data!
+
+\pagebreak
+
+#Custom Data Science Skills Survey & Results
+
+In addition to examining the data and trends discussed in the article and doing our own analysis of the Kaggle data science skills survey results, we wanted to create our own survey looking at company needs. This was an excellent opportunity to learn more about designing and administering a survey in addition to wrangling and analyzing the results. Also, it allowed us to reach out and establish contacts at some companies at which we might want to work as data scientists. 
+
+We sent out the survey to at least 15 different contacts. We attempted to target data science leads or leaders with a good grasp of how their team hires and grows. As of 10/17/18, we have only received six responses. Obviously, it was a targeted survey that received only a few responses and cannot be claimed[ to be representative to the overall industry. Still, it was a worthwhile and educational endeavor. (You can help us out and take the survey [here](https://www.surveymonkey.co.uk/r/2GZWJQ6). It will only take a couple minutes.)
+
+We work[ed as a team to develop a set of survey questions, listed below. We then configured these questions to be administered via a free account on [Survey Monkey](https://www.surveymonkey.com/). That free account does not include any export functionality, let alone API connectivity, so results were compiled manually in a tidy-ish format in a csv file.
+
+```{r}
+#load the csv into R
+df_dfs <- tbl_df(read.csv("https://raw.githubusercontent.com/littlejohnjeff/DATA607_Project3/master/Data%20Science%20Skills%20Survey%20Monkey%20Responses_20181017.csv"))
+#Display all six responses to our eight questions
+kable(df_dfs)
+```
+
+###Survey Respondent Team Size
+
+Who did we survey? We don't have statistics on this, but our responses likely came from smaller companies with smaller than average data science teams.
+```{r}
+#limit data to question 1; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_size <- df_dfs %>% filter(df_dfs$Question.No. == 1) %>% droplevels()
+ggplot(team_size,aes(x=Answer),na.rm = TRUE) + geom_bar(aes(fill=Answer)) + theme_light() +  
+  labs(title = "Team size - from survey",
+  x= "Team size",
+  y = "Count")
+```
+
+So all our responses came from organizations with more than a couple but no more than 10 team members. Based on the way we created our survey result data, possible answers to questions that were not selected by any users are not included in the csv and therefore are not included in the data frame or resulting visualization. For data science team size, this does not really matter. We know there are teams larger than 10, but none of those responded to the survey. For other questions, such as questions asking to pick the top three most important skills from a list of skills, the options that received no responses are important.
+
+```{r}
+#Summarize the responses, including a list of levels with the factor for answers for this question
+team_size$Answer
+```
+
+We want to add back the possible answers that did not receive responses. There is surely a better way to structure survey response data in R using one the survey-oriented packages, but don't call us Shirley. We'll display the code for adding the unused possible answers as factors here as a separate chunk of code. For later question responses, we will include this step right after subsetting.
+```{r}
+#add unused answers
+levels(team_size$Answer) <- c(levels(team_size$Answer),"1-2","11-20","21+")
+#check that the desired levels were added
+levels(team_size$Answer) 
+```
+
+Now let's re-graph the responses, adding some (slight) aesthetic touches, along with the answer choices that were not selected. As the data science team sizes indicate, we mostly reached out to (and heard back from) smaller teams.
+```{r}
+#create an order to show the factors in logical manner
+positions <- c('1-2', "3-5", '6-10', '11-20', '21+')
+#including anbswers wi
+ggplot(team_size,aes(x=Answer)) + geom_bar(aes(fill=Answer)) + theme_light() + scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE, limits = positions) + labs(x = "Data Science Team Size",y="Count")
+```
+  
+###Survey Respondent Team Roles
+
+```{r}
+#limit data to question 2; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_roles <- df_dfs %>% filter(df_dfs$Question.No. == 2) %>% droplevels()
+#add unused answers
+levels(team_roles$Answer) <- c(levels(team_roles$Answer),"Other")
+#create an order to show the factors in logical manner
+positions2 <- c('No, everyone is versatile', "Kinda, some people are better at things than others and we utilize our strengths", 'Yes, some of our team members specialize in data engineering and others in data science',"Other")
+#including answers with no respones and adjusting axis in a few ways 
+ggplot(team_roles,aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme_light() + scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE, limits = positions2, labels = function(x) str_wrap(str_replace_all(x, "foo" , " "),width = 20)) + labs(x = "Are data science roles on your team differentiated?",y="") + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "bottom")
+team_roles %>% mutate(team.role.segregation = ifelse(Answer == "Kinda, some people are better at things than others and we utilize our strengths" | Answer == "Yes, some of our team members specialize in data engineering and others in data science", "Specialized roles", "versatile")) %>%
+  ggplot(aes(team.role.segregation)) + 
+  geom_bar(aes(fill = Answer)) + labs(title = "Roles segregation within data science teams from the survey") + theme(axis.text.x=element_text(angle = 60, hjust = 1))
+``` 
+
+Even on the smaller data science teams from which we received responses, the majority of teams used members in different ways. This is somewhat encouraging. Data science job listings tend to list an impossible number of skills that they seemingly expected qualified applicants to have. Our responses, though paltry in number, suggest we might be able to start contributing to a team without mastering everything. A "kinda" team might be a great opportunity to get build some cool stuff using our strengths while also filling in skills gaps.
+
+###Survey Respondent Team Location
+
+Now let's look at responses related to where data science "lives" within an organization. At some companies, data scientists work together on a centralized team that attempts to solve the problems of business units or clients. In other firms, data scientists might work within an operational or other division and have a "dotted line" reporting relationship to a data science or analytics leader. They may have weekly or other iterative collaborations with the other data scientists at their company, but they might work more with the business users or analysts within their data domain.
+```{r}
+#limit data to question 3; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_location <- df_dfs %>% filter(df_dfs$Question.No. == 3) %>% droplevels()
+#including answers with no respones and adjusting axis in a few ways 
+team_location %>%
+  ggplot(aes(Answer)) + 
+  geom_dotplot(aes(fill = Answer), binwidth = 0.5, dotsize = 1) + labs(title = "Data Science team location in the organization") + theme(axis.text.x=element_text(angle = 60, hjust = 1), axis.text.y = element_blank(), axis.title.x = element_blank()) + 
+  ylim(0,nrow(team_location) + 2)
+``` 
+  
+As is clearly evident, our responses were evenly split between central and deployed data science teams. 
+
+###Survey Respondent Team Growth Estimates
+
+Next, we were curious about data science teams' plans for growth. Again, selfishly, we particularly targeted companies at which we may want to work as data scientists, so these were especially interesting responses.  
+
+```{r}
+#limit data to question 4; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_growth <- df_dfs %>% filter(df_dfs$Question.No. == 4) %>% droplevels()
+#add unused answers
+levels(team_growth$Answer) <- c(levels(team_growth$Answer),"No growth - or negative growth","More than double")
+#create an order to show the factors in logical manner
+positions4 <- c("No growth - or negative growth", "1-25%",'25-50%',"50-100%","More than double")
+#including answers with no respones and adjusting axis in a few ways 
+ggplot(team_growth,aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme_light() + scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE, limits = positions4, labels = function(x) str_wrap(str_replace_all(x, "foo" , " "),width = 20)) + labs(x = "What kind of team growth do you anticipate in the next 2 years?",y="", title = "Expected Growth of existing data science teams in the next 2 years") + theme(axis.text.x = element_text(angle=45, hjust=1)) 
+``` 
+
+All teams expect to grow, though none of the respondents expect to more than double. Encouraging, but the wild days of data scientist job growth might be slowing.  
+
+##Survey Respondent Top Skills Desired
+
+Perhaps most importantly, what skills are employers looking for in hiring data scientists? We asked team leaders to pick their top three. Based on our survey, we see the below trends for the most sought after skills.
+```{r}
+#limit data to question 5; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_skills <- df_dfs %>% filter(df_dfs$Question.No. == 5) %>% droplevels()
+#add unused answers
+levels(team_skills$Answer) <- c(levels(team_skills$Answer),"R","Java","Data wrangling", "Unstructured data", "Natural language processing", "Optimization", "Graphical models", "Privacy and ethics", "Other soft skills", "Other (please specify)")
+#create an order to show the factors in logical manner
+positions5 <- c("Data wrangling", "Graphical models", "Hadoop;Map/Reduce", "Java", "Machine learning", "Natural language processing", "Optimization","Other (please specify)", "Other soft skills", "Presentation skills", "Privacy and ethics", "Project management", "Python", "R",  "Research design", "SQL", "Statistical modeling", "Unstructured data")
+#including answers with no respones and adjusting axis in a few ways 
+team_skills %>% within(Answer <- factor(Answer, levels = names(sort(table(Answer), decreasing = TRUE)))) %>% ggplot(aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme(axis.text.x = element_text(angle=45, hjust=1)) + labs(title = "Top wanted skills")
+``` 
+
+Machine learning and statistical modeling were both picked by half of the six respondents, along with the (relatively) soft skills of project management. Many of us have project management experience from our pre-data science careers, so that's heartening. We take note of Python being picked by two respondents, with R going unpicked.
+
+##Survey Respondent Hardest to Find Skill
+
+On the same topic, we asked what skills is hardest to find among applicants? 
+```{r}
+#limit data to question 6; drop levels removes unused factors - which are responses to to other questions - will be important later
+team_skill2 <- df_dfs %>% filter(df_dfs$Question.No. == 6) %>% droplevels()
+#add unused answers
+levels(team_skill2$Answer) <- c(levels(team_skill2$Answer),"R","Java","Data wrangling", "Unstructured data", "Natural language processing", "Optimization", "Graphical models", "Privacy and ethics", "Other soft skills", "Other (please specify)")
+#create an order to show the factors in logical manner 
+positions6 <- c("Ability to apply skills to practical problems","Data wrangling", "Graphical models", "Hadoop;Map/Reduce", "Java", "Machine learning", "Natural language processing", "Optimization","Other (please specify)", "Other soft skills", "Presentation skills", "Privacy and ethics", "Project management", "Python", "R",  "Research design", "SQL", "Statistical modeling", "Unstructured data")
+#including answers with no respones and adjusting axis in a few ways 
+team_skill2 %>% within(Answer <- factor(Answer, levels = names(sort(table(Answer), decreasing = TRUE)))) %>% ggplot(aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme(axis.text.x = element_text(angle=90, hjust=1), axis.title.x = element_blank()) +  labs(title = "Hardest to find skills")
+``` 
+
+No two respondents chose the same skill! Interesting that four of the six responses are non-technical.
+
+##Survey Respondent Skill Most Associated with Advancement
+
+We also added a related question - what skill is most associated with advancement on your team? 
+```{r}
+#limit data to question ;7 drop levels removes unused factors - which are responses to to other questions - will be important later
+team_skill3 <- df_dfs %>% filter(df_dfs$Question.No. == 7) %>% droplevels()
+#add unused answers
+levels(team_skill3$Answer) <- c(levels(team_skill3$Answer),"R","Java","Data wrangling", "Unstructured data", "Natural language processing", "Optimization", "Graphical models", "Privacy and ethics", "Other soft skills", "Other (please specify)")
+#including answers with no respones and adjusting axis in a few ways 
+#reusing position vector from 6
+team_skill3 %>% within(Answer <- factor(Answer, levels = names(sort(table(Answer), decreasing = TRUE)))) %>% ggplot(aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme(axis.text.x = element_text(angle=90, hjust=1), axis.title.x = element_blank()) +  labs(title = "Skills associated most with advancement") +
+  scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE, limits = positions6, labels = function(x) str_wrap(str_replace_all(x, "foo" , " "),width = 30)) 
+``` 
+
+Machine learning showed up yet again with multiple selections. Soft skills are heavily represented as well, echoing industry feedback that project management and presentation skills are just as essential to success as technical competency.  
+
+####Survey Respondent Junior Data Scientist Starting Salary
+
+Finally, if teams hire junior (or relatively entry level data scientists), what is the average starting salary?
+```{r}
+#limit data to question 8 drop levels removes unused factors - which are responses to to other questions - will be important later
+team_salary <- df_dfs %>% filter(df_dfs$Question.No. == 8) %>% droplevels()
+#add unused answers
+levels(team_salary$Answer) <- c(levels(team_salary$Answer),"Less than $50,000", "$125,000+")
+#create an order to show the factors in logical manner 
+positions8 <- c("Less than $50,000","$50,000-74,999","$75,000-99,999","$100,000-124,999","$125,000+")
+#including answers with no respones and adjusting axis in a few ways 
+ggplot(team_salary,aes(x=Answer)) + geom_bar(aes(fill = Answer)) + theme_light() + scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE, limits = positions8, labels = function(x) str_wrap(str_replace_all(x, "foo" , " "),width = 30)) + labs(x = "What is the average pay rate for junior data scientists?",y="") + theme(axis.text.x = element_text(angle=45, hjust=1)) 
+``` 
+
+This is in line with what we'd expect given other industry data.
+
+#Conclusion
+
+We see numerous possibilities for further exploration. A deeper look at the dearth of entry-level data science positions. Perhaps we could even use a combination of web scraping and machine learning to identify entry-level positions automatically. Additionally, a survey of recent graduates of the CUNY program would be of much interest. 
+
+##Credits
+
+Eleanor Romero - Job Listings Article Discussion, Presentation Slides
+
+Alice Friedman - Kaggle Analysis 1, Technical Compilation, Presenter
+
+Deepak Mongia - Kaggle Analysis 2, Graph Consistency Owner
+
+Jeff Littlejohn - Custom Survey Build & Analysis, Content Compilation
+
+
+## Reference
+https://towardsdatascience.com/the-most-in-demand-skills-for-data-scientists-4a4a8db896db
+
+https://www.kaggle.com/kaggle/kaggle-survey-2017
+
