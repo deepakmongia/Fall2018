@@ -1,0 +1,27 @@
+---
+title: "Data 606 Chapter 4 Assignment"
+author: "Deepak Mongia"
+date: "October 21, 2018"
+output: html_document
+---
+
+4.4 Heights of adults. Researchers studying anthropometry collected body girth measurements
+and skeletal diameter measurements, as well as age, weight, height and gender, for 507 physically
+active individuals. The histogram below shows the sample distribution of heights in centimeters.38
+Height
+150 160 170 180 190 200
+0
+20
+40
+60
+80
+100
+Min 147.2
+Q1 163.8
+Median 170.3
+Mean 171.1
+SD 9.4
+Q3 177.8
+Max 198.1
+(a) What is the point estimate for the average height of active individuals? What about the
+median?
