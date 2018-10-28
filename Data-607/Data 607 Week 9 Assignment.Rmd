@@ -1,0 +1,49 @@
+---
+title: "Deepak Mongia - Data 607 Week 9 Assignment"
+author: "Deepak Mongia"
+date: "October 27, 2018"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+---
+
+## Assignment - Web APIs
+
+The New York Times web site provides a rich set of APIs, as described here: http://developer.nytimes.com/docs
+You'll need to start by signing up for an API key.
+Your task is to choose one of the New York Times APIs, construct an interface in R to read in the JSON data, and transform it to an R dataframe.
+
+
+Step-1: Loading the required packages
+```{r}
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(kableExtra)
+```
+
+We have already requested the API key to get / read the data from the NY Times API. We are using the books_api from the NY Times page : http://developer.nytimes.com/
+
+```{r}
+nyt_books_url <- "https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json"
+
+nyt_books <- GET(nyt_books_url, query = list(api_key = "a01880c89030475c908b46f8072e2a02"))
+
+nyt_books$status_code
+
+text_content <- content(nyt_books, as = "text")
+
+json_content_df <- text_content %>% fromJSON() %>% as.data.frame()
+
+dim(json_content_df)
+
+json_content_df %>% kable() %>% kable_styling()
+
+# Removing the first 3 columns as those are irrelevant here, and not needed
+json_content_df <- json_content_df[, -(1:3)]
+
+json_content_df %>% kable() %>% kable_styling()
+
+```
+
