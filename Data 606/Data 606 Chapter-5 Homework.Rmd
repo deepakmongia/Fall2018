@@ -1,0 +1,89 @@
+---
+title: "Data 606 Homework-5"
+author: "Deepak Mongia"
+date: "October 29, 2018"
+output: html_document
+---
+
+5.6 Working backwards, Part II. A 90% confidence interval for a population mean is (65,
+77). The population distribution is approximately normal and the population standard deviation
+is unknown. This confidence interval is based on a simple random sample of 25 observations.
+Calculate the sample mean, the margin of error, and the sample standard deviation.
+
+Answer:
+As we are calculating 90% confidence level here, that means 5% on each side. df = n-1, hence df = 24 in this case
+Calculating the t-value:
+```{r}
+t5.6 <- abs(qt(p=0.05, df=24))
+t5.6
+```
+
+Calculating the standard error:
+```{r}
+SE_5.6 <- (77-65)/(2 * t5.6)
+SE_5.6
+```
+
+Calculating the standard deviation
+```{r}
+sd_5.6 <- SE_5.6 * sqrt(25)
+sd_5.6
+```
+
+Calculating the Margin of error:
+```{r}
+ME_5.6 <- t5.6 * SE_5.6
+ME_5.6
+```
+
+
+5.14 SAT scores. SAT scores of students at an Ivy League college are distributed with a
+standard deviation of 250 points. Two statistics students, Raina and Luke, want to estimate the
+average SAT score of students at this college as part of a class project. They want their margin of
+error to be no more than 25 points.
+(a) Raina wants to use a 90% confidence interval. How large a sample should she collect?
+
+Answer: 
+Calculating z-score for a normal distribution for 95% CI
+```{r}
+sd_5.14 <- 250
+Z_5.14_Raina <- qnorm(0.95, mean = 0, sd = 1)
+```
+
+Deriving the formula for this question.
+now, Margin Error (ME) < 25
+Z * SE < 25
+
+Z * (sd/sqrt(n))  < 25
+
+n > (Z * sd / 25)^2
+Using this in R:
+```{r}
+n_5.14_Raina <- (Z_5.14_Raina * sd_5.14 / 25)^2
+n_5.14_Raina
+```
+
+Hence Raina should collect at least 271
+
+(b) Luke wants to use a 99% confidence interval. Without calculating the actual sample size,
+determine whether his sample should be larger or smaller than Raina's, and explain your
+reasoning.
+
+Answer: 
+Calculating z-score for a normal distribution for 99% CI
+```{r}
+Z_5.14_Luke <- qnorm(0.995, mean = 0, sd = 1)
+Z_5.14_Luke
+```
+
+Bigger the Z-score, bigger the sample. As Luke's Z-score is bigger, Luke's sample will have to be larger.
+
+(c) Calculate the minimum required sample size for Luke.
+
+Answer:
+
+```{r}
+#Using the same formula for Luke - using Z-score for Luke
+n_5.14_Luke <- (Z_5.14_Luke * sd_5.14 / 25)^2
+n_5.14_Luke
+```
