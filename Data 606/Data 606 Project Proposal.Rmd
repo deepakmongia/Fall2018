@@ -1,0 +1,154 @@
+---
+title: "Data 606 Project Proposal"
+author: "Deepak Mongia"
+date: "October 27, 2018"
+output: html_document
+---
+### Energy efficiency Data Set
+
+For this project for Data 606, we are going to work on the Energy Efficient data set which is present at this web link: http://archive.ics.uci.edu/ml/datasets/Energy+efficiency#
+
+### Data Preparation
+
+Loading the data set into R, so that it can be used
+```{r setup}
+library(readxl)
+library(ggplot2)
+library(gridExtra)
+
+energy.efficiency.df1 <- read_xlsx("ENB2012_data.xlsx", sheet = 1)
+
+head(energy.efficiency.df1)
+
+names(energy.efficiency.df1) <- c("relative.compactness", "surface.area", "wall.area", "roof.area", "overall.height", "orientation", "glazing.area", "glazing.area.distribution", "heating.load", "cooling.load")
+
+summary(energy.efficiency.df1)
+
+energy.efficiency.df1$orientation <- as.factor(energy.efficiency.df1$orientation)
+levels(energy.efficiency.df1$orientation)[levels(energy.efficiency.df1$orientation) == "2"] <- "north"
+levels(energy.efficiency.df1$orientation)[levels(energy.efficiency.df1$orientation) == "3"] <- "east"
+levels(energy.efficiency.df1$orientation)[levels(energy.efficiency.df1$orientation) == "4"] <- "south"
+levels(energy.efficiency.df1$orientation)[levels(energy.efficiency.df1$orientation) == "5"] <- "west"
+
+head(energy.efficiency.df1)
+
+```
+
+Attribute Details:
+
+Relative Compactness        -     Ratio
+
+Surface Area                -     sq. meters
+
+Wall Area                   -     sq. meters
+
+Roof Area                   -     sq. meters
+
+Overall Height              -     meters
+
+Orientation                 -     2:North, 3:East, 4:South, 5:West
+
+Glazing area (ratio)        -     0.00, 0.10, 0.25, 0.40
+
+Glazing area distribution   -     1:Uniform, 2:North, 3:East, 4:South, 5:West
+
+Heating Load                -     kWh/sq. meters
+
+Cooling Load                -     kWh/sq. meters
+
+
+### Research question
+
+**You should phrase your research question in a way that matches up with the scope of inference your dataset allows for.**
+
+1. Is the relative compactness of a building predictive of heating load and cooling load of a building ?
+
+2. Is the area (wall area / roof area / surface area) of a building predictive of the heating or cooling load ?
+
+3. Does the building orientation suggest anything about the heating or cooling efficiency of a building ?
+
+
+
+### Cases
+
+**What are the cases, and how many are there?**
+
+- Cases are all these variable values for each building which is a part of the sample
+
+- There are total of 768 cases in this data set
+
+**Describe the method of data collection.**
+
+The dataset was created by Angeliki Xifara (angxifara '@' gmail.com, Civil/Structural Engineer) and was processed by Athanasios Tsanas (tsanasthanasis '@' gmail.com, Oxford Centre for Industrial and Applied Mathematics, University of Oxford, UK).
+
+
+### Type of study 
+
+**What type of study is this (observational/experiment)?**
+
+This is an observational study as the data has been collected for the buildings which are there already. This is not an experiment.
+
+
+### Data Source 
+
+**If you collected the data, state self-collected. If not, provide a citation/link.**
+
+The data is collected from: http://archive.ics.uci.edu/ml/datasets/Energy+efficiency#
+
+### Dependent Variable
+
+**What is the response variable? Is it quantitative or qualitative?**
+
+The response variables are:
+heating.load
+cooling.load
+
+
+### Independent Variable
+
+**You should have two independent variables, one quantitative and one qualitative.**
+
+In this case, we have the below independent variables:
+relative.compactness      -   numerical
+surface.area              -   numerical
+wall.area                 -   numerical
+roof.area                 -   numerical
+overall.height            -   numerical
+orientation               -   categorical
+glazing.area              -   numerical
+glazing.area.distribution -   categorical
+
+
+### Relevant summary statistics 
+
+**Provide summary statistics for each the variables. Also include appropriate visualizations related to your research question (e.g. scatter plot, boxplots, etc). This step requires the use of R, hence a code chunk is provided below. Insert more code chunks as needed.**
+
+Efficiencies against relative compactness
+```{r}
+a <- ggplot(energy.efficiency.df1, aes(x=energy.efficiency.df1$relative.compactness, y=energy.efficiency.df1$heating.load)) +
+  geom_point()
+
+b <- ggplot(energy.efficiency.df1, aes(x=energy.efficiency.df1$relative.compactness, y=energy.efficiency.df1$cooling.load)) +
+  geom_point()
+
+grid.arrange(a, b, nrow = 1)
+```
+
+Efficiencies against surface area
+```{r}
+a <- ggplot(energy.efficiency.df1, aes(x=energy.efficiency.df1$surface.area, y=energy.efficiency.df1$heating.load)) +
+  geom_point()
+
+b <- ggplot(energy.efficiency.df1, aes(x=energy.efficiency.df1$surface.area, y=energy.efficiency.df1$cooling.load)) +
+  geom_point()
+
+grid.arrange(a, b, nrow = 1)
+
+```
+
+Relationships between the 2 efficiency values
+```{r}
+ggplot(energy.efficiency.df1, aes(x=energy.efficiency.df1$heating.load, y=energy.efficiency.df1$cooling.load)) +
+  geom_point() + stat_smooth(method = lm)
+```
+
