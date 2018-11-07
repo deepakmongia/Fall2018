@@ -1,0 +1,112 @@
+---
+title: "Data 607 Project-4"
+author: "Deepak Mongia"
+date: "November 5, 2018"
+output: html_document
+---
+
+Loading the required packages:
+
+```{r setup, include=FALSE}
+library(readtext)
+library(dplyr)
+library(stringr)
+library(SnowballC)
+library(tm)
+library(wordcloud)
+```
+
+Loading the spam data set from the local drive, and putting it in a data.frame:
+
+```{r, warning=FALSE}
+spam_folder_path <- "D:/MS Data Science/CUNY/CUNY/CUNY MSDS/Fall 2018/DATA 607/DATA 607 Week-10/Data 607 Project-4/spamham/All-spam"
+
+spam_file_list <- list.files(path = spam_folder_path)
+spam_file_list <- paste(spam_folder_path, "/", spam_file_list, sep = "")
+raw_spam <- lapply(spam_file_list, readtext)
+raw_spam <- lapply(raw_spam, FUN = paste, collapse = " ")
+
+### Function to get just the email body - assuming that the body starts from the point just after 2 consecutive new line characters that comes for the first time after the string "From:"
+get_email_body <- function(email){
+  email_body <- str_split(email,"From:.*\n?(.+\n)*\n") %>% lapply('[[',2) %>% unlist()
+  return(email_body)
+}
+
+spam_email_body_list <- lapply(raw_spam, get_email_body)
+spam_email_body_df <- as.data.frame(unlist(spam_email_body_list), stringsAsFactors = FALSE)
+spam_email_body_df$class <- vector(mode = "numeric", length = nrow(spam_email_body_df))
+spam_email_body_df$class <- 0
+colnames(spam_email_body_df) <- c("email_body", "class")
+dim(spam_email_body_df)
+
+```
+
+Loading the ham data set from the local drive, and putting it in a data.frame:
+
+```{r, warning=FALSE}
+ham_folder_path <- "D:/MS Data Science/CUNY/CUNY/CUNY MSDS/Fall 2018/DATA 607/DATA 607 Week-10/Data 607 Project-4/spamham/All-ham"
+
+ham_file_list <- list.files(path = ham_folder_path)
+ham_file_list <- paste(ham_folder_path, "/", ham_file_list, sep = "")
+raw_ham <- lapply(ham_file_list, readtext)
+raw_ham <- lapply(raw_ham, FUN = paste, collapse = " ")
+
+ham_email_body_list <- lapply(raw_ham, get_email_body)
+ham_email_body_df <- as.data.frame(unlist(ham_email_body_list), stringsAsFactors = FALSE)
+ham_email_body_df$class <- vector(mode = "numeric", length = nrow(ham_email_body_df))
+ham_email_body_df$class <- 1
+colnames(ham_email_body_df) <- c("email_body", "class")
+dim(ham_email_body_df)
+
+```
+
+Merging the 2 data.frames and then cleaning up of the data thru tm package functions:
+
+```{r}
+spam_ham_merged_df <- rbind(spam_email_body_df, ham_email_body_df)
+dim(spam_ham_merged_df)
+```
+
+Cleaning up spam data set and creating the Document-term Matrix. Finally this will be used to create the Top 20 words in the form of a word cloud.
+```{r}
+spam_email_body_text_corpus <- spam_email_body_df$email_body %>% VectorSource() %>% Corpus()
+
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus %>% tm_map(content_transformer(tolower))
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus_cleaned %>% tm_map(removePunctuation)
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus_cleaned %>% tm_map(stripWhitespace)
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus_cleaned %>% tm_map(removeWords, stopwords("english"))
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus_cleaned %>% tm_map(removeNumbers)
+spam_email_body_text_corpus_cleaned <- spam_email_body_text_corpus_cleaned %>% tm_map(stemDocument)
+
+spam_email_body_dtm_tfidf <- DocumentTermMatrix(spam_email_body_text_corpus_cleaned, control = list(weighting = weightTfIdf))
+spam_email_body_dtm <- DocumentTermMatrix(spam_email_body_text_corpus_cleaned)
+spam_email_body_dtm_matrix <- as.matrix(spam_email_body_dtm)
+spam_word_frequency <- colSums(spam_email_body_dtm_matrix)
+spam_word_frequency <- sort(spam_word_frequency, decreasing = TRUE)
+spam_word_frequency[1:20]
+
+spam_words <- names(spam_word_frequency)
+wordcloud(spam_words[1:50], spam_word_frequency[1:50])
+```
+
+Cleaning up ham data set and creating the Document-term Matrix. Finally this will be used to create the Top 20 words in the form of a word cloud.
+```{r}
+ham_email_body_text_corpus <- ham_email_body_df$email_body %>% VectorSource() %>% Corpus()
+
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus %>% tm_map(content_transformer(tolower))
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus_cleaned %>% tm_map(removePunctuation)
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus_cleaned %>% tm_map(stripWhitespace)
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus_cleaned %>% tm_map(removeWords, stopwords("english"))
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus_cleaned %>% tm_map(removeNumbers)
+ham_email_body_text_corpus_cleaned <- ham_email_body_text_corpus_cleaned %>% tm_map(stemDocument)
+
+ham_email_body_dtm_tfidf <- DocumentTermMatrix(ham_email_body_text_corpus_cleaned, control = list(weighting = weightTfIdf))
+ham_email_body_dtm <- DocumentTermMatrix(ham_email_body_text_corpus_cleaned)
+ham_email_body_dtm_matrix <- as.matrix(removeSparseTerms(ham_email_body_dtm, 0.999))
+ham_word_frequency <- colSums(ham_email_body_dtm_matrix)
+ham_word_frequency <- sort(ham_word_frequency, decreasing = TRUE)
+ham_word_frequency[1:20]
+
+ham_words <- names(ham_word_frequency)
+wordcloud(ham_words[1:50], ham_word_frequency[1:50])
+```
