@@ -5,6 +5,13 @@ date: "November 5, 2018"
 output: html_document
 ---
 
+For this project, we have been given a email corpus which has spam as well as ham emails, and the emails are segregated into spam and ham. The ask is to do the text mining of the data set and find the most common words in the spam and ham emails. 
+The email corpus link is: https://spamassassin.apache.org/old/publiccorpus/
+
+We have copied all the zip files, and unzipped them. And then all the ham emails have been put into a single folder : All-ham, similarly all the spam emails have been put into another folder : All-spam.
+
+We will be reading all these emails - spam and ham separately into R, and will be performing text mining on both the data sets.
+
 Loading the required packages:
 
 ```{r setup, include=FALSE}
@@ -16,7 +23,9 @@ library(tm)
 library(wordcloud)
 ```
 
-Loading the spam data set from the local drive, and putting it in a data.frame:
+Loading the spam data set from the local drive, and putting it in a data.frame. Also, note that we are working only on the email body, and will be removing the email headers to do our text mining. For this, we have created a function which uses regular expressions to remove the header, and just save the email body text.
+Also, as a part of this function, we are removing the tml tags, as we see that there are many emails which are in html format, and we don't want to count the html tags in our word counting.
+Also, in the final spam data.frame, we are creating a class column, and the value of class for spam would be set to 1.
 
 ```{r, warning=FALSE}
 spam_folder_path <- "D:/MS Data Science/CUNY/CUNY/CUNY MSDS/Fall 2018/DATA 607/DATA 607 Week-10/Data 607 Project-4/spamham/All-spam"
@@ -27,8 +36,10 @@ raw_spam <- lapply(spam_file_list, readtext)
 raw_spam <- lapply(raw_spam, FUN = paste, collapse = " ")
 
 ### Function to get just the email body - assuming that the body starts from the point just after 2 consecutive new line characters that comes for the first time after the string "From:"
+### also remove html_tags
 get_email_body <- function(email){
   email_body <- str_split(email,"From:.*\n?(.+\n)*\n") %>% lapply('[[',2) %>% unlist()
+  email_body <- gsub("<.*?>", " ", email_body)
   return(email_body)
 }
 
@@ -41,7 +52,7 @@ dim(spam_email_body_df)
 
 ```
 
-Loading the ham data set from the local drive, and putting it in a data.frame:
+Loading the ham data set from the local drive, and putting it in a data.frame. Same function defined above will be used to get the email body and remove the html tags. 
 
 ```{r, warning=FALSE}
 ham_folder_path <- "D:/MS Data Science/CUNY/CUNY/CUNY MSDS/Fall 2018/DATA 607/DATA 607 Week-10/Data 607 Project-4/spamham/All-ham"
@@ -60,12 +71,6 @@ dim(ham_email_body_df)
 
 ```
 
-Merging the 2 data.frames and then cleaning up of the data thru tm package functions:
-
-```{r}
-spam_ham_merged_df <- rbind(spam_email_body_df, ham_email_body_df)
-dim(spam_ham_merged_df)
-```
 
 Cleaning up spam data set and creating the Document-term Matrix. Finally this will be used to create the Top 20 words in the form of a word cloud.
 ```{r}
