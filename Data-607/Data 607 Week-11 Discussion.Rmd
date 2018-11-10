@@ -1,0 +1,17 @@
+---
+title: "Data 607 Week 11 Discussion"
+author: "Deepak Mongia"
+date: "November 9, 2018"
+output: html_document
+---
+
+Audible audio books recommender system:
+Audible is a company which deals with producing and selling audiobooks, which is a major portion of their business, along with other spoken audio entertainment in the form of radio and TV programs, and magazines and newspapers.
+An Audible subscriber or member can pay a nominal monthly fees and get monthly credits for buying audiobooks and downloading to their personal mobile phone through the Audible mobile app. I started using Audible last year and have been loving the experience of listening to the audiobooks on the go while I am driving or travelling or working out in the gym.
+Audible has a decent recommender system implemented on their website which helps the users look for similar books what they have listened to in the past, or books which are related to the users' earlier choices. From my experience with Audible, and my very basic knowledge right now of the recommender systems, it looks like Audible uses a form of Clustering algorithm. The website recommends other books in similar category. As I am a frequent listener of self-help books, my Audible login shows many good self-help books which are vast in number if I scroll to the right. So, it is apparent that their recommender system clusters the members based on similarity in their past buying history, and then suggests the books to a member based on what other listeners in the cluster have bought.
+A)	Scenario Design analysis:
+
+1)	Who are your target users ? - Audible users or members who buy books frequently to listen to them from their devices especially cell phones.
+2)	What are their key goals ? - To find a good audiobook that matches their interests or what they would want to listen to.
+3)	How can you help them accomplish their goals ? - By building a recommender system which recommends the audiobooks based on their past selections and what they have finished listening to in the past, or suggesting books based on what other users in groups having other similar listeners are listening to. Also by sometimes giving them other good options which are somewhat different than the genres of books they have listened to in the past.
+
