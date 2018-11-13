@@ -21,6 +21,7 @@ library(stringr)
 library(SnowballC)
 library(tm)
 library(wordcloud)
+library(kableExtra)
 ```
 
 Loading the spam data set from the local drive, and putting it in a data.frame. Also, note that we are working only on the email body, and will be removing the email headers to do our text mining. For this, we have created a function which uses regular expressions to remove the header, and just save the email body text.
@@ -73,6 +74,18 @@ dim(ham_email_body_df)
 
 
 Cleaning up spam data set and creating the Document-term Matrix. Finally this will be used to create the Top 20 words in the form of a word cloud.
+Using the tm package function tm_map to :
+1) convert to lower case
+2) remove punctuation
+3) remove white space
+4) remove stop words
+5) remove numbers
+6) stemming
+
+Working with Document Term Matrix:
+1) Generating 2 types of Document Term Matrices - 1 with the tf-idf of words, and 2nd with the count of words
+2) Using the DTM with the word counts to build the word cloud for the top 50 most used words in spam
+
 ```{r}
 spam_email_body_text_corpus <- spam_email_body_df$email_body %>% VectorSource() %>% Corpus()
 
@@ -88,13 +101,15 @@ spam_email_body_dtm <- DocumentTermMatrix(spam_email_body_text_corpus_cleaned)
 spam_email_body_dtm_matrix <- as.matrix(spam_email_body_dtm)
 spam_word_frequency <- colSums(spam_email_body_dtm_matrix)
 spam_word_frequency <- sort(spam_word_frequency, decreasing = TRUE)
-spam_word_frequency[1:20]
+
+print("Top 20 words in spam emails")
+spam_word_frequency[1:20] %>% kable()
 
 spam_words <- names(spam_word_frequency)
-wordcloud(spam_words[1:50], spam_word_frequency[1:50])
+wordcloud(spam_words[1:100], spam_word_frequency[1:100])
 ```
 
-Cleaning up ham data set and creating the Document-term Matrix. Finally this will be used to create the Top 20 words in the form of a word cloud.
+Performing the same for the ham emails data set:
 ```{r}
 ham_email_body_text_corpus <- ham_email_body_df$email_body %>% VectorSource() %>% Corpus()
 
@@ -110,8 +125,14 @@ ham_email_body_dtm <- DocumentTermMatrix(ham_email_body_text_corpus_cleaned)
 ham_email_body_dtm_matrix <- as.matrix(removeSparseTerms(ham_email_body_dtm, 0.999))
 ham_word_frequency <- colSums(ham_email_body_dtm_matrix)
 ham_word_frequency <- sort(ham_word_frequency, decreasing = TRUE)
-ham_word_frequency[1:20]
+print("Top 20 words in ham emails")
+ham_word_frequency[1:20] %>% kable()
 
 ham_words <- names(ham_word_frequency)
-wordcloud(ham_words[1:50], ham_word_frequency[1:50])
+wordcloud(ham_words[1:100], ham_word_frequency[1:100])
 ```
+
+
+Conclusion:
+Inspite of many common words which we see in the word clouds from spam and ham emails, there are some words which distinguish the spam and ham. Spam has words like - click, receive, money, order, credit, save - which look to be referring to emails related to advertizements. On the other hand, ham emails have words like - problem, still, right, said, like - which seem to be more like conveying a message to the recipient of the email.
+Hence we get some words relevant in both types of emails, however some of these words are common in both spam and ham emails.
