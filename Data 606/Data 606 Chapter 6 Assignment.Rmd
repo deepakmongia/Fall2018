@@ -1,0 +1,192 @@
+---
+title: "Data 606 Chapter-6 Assignment"
+author: "Deepak Mongia"
+date: "November 17, 2018"
+output: html_document
+---
+
+
+6.6 2010 Healthcare Law. On June 28, 2012 the U.S. Supreme Court upheld the much debated
+2010 healthcare law, declaring it constitutional. A Gallup poll released the day after this decision
+indicates that 46% of 1,012 Americans agree with this decision. At a 95% confidence level, this
+sample has a 3% margin of error. Based on this information, determine if the following statements
+are true or false, and explain your reasoning.
+
+(a) We are 95% confident that between 43% and 49% of Americans in this sample support the
+decision of the U.S. Supreme Court on the 2010 healthcare law.
+
+Answer: False
+Confidence level is for the whole population, and not the sample.
+
+(b) We are 95% confident that between 43% and 49% of Americans support the decision of the
+U.S. Supreme Court on the 2010 healthcare law.
+Answer: True
+To calculate 95% conf level, Z* = 1.96
+```{r}
+P_est_6.6 <- 0.46
+n_6.6 <- 1012
+SE_6.6 <- sqrt(P_est_6.6 * (1 - P_est_6.6) / n_6.6)
+upper_value_95_6.6 <- P_est_6.6 + 1.96 * SE_6.6
+lower_value_95_6.6 <- P_est_6.6 - 1.96 * SE_6.6
+
+upper_value_95_6.6
+lower_value_95_6.6
+```
+
+(c) If we considered many random samples of 1,012 Americans, and we calculated the sample
+proportions of those who support the decision of the U.S. Supreme Court, 95% of those sample
+proportions will be between 43% and 49%.
+
+Answer: True
+
+(d) The margin of error at a 90% confidence level would be higher than 3%.
+Answer: False
+As the confidence level goes down, the Z value also reduces. Z value for 90% is 1.65. Hence the margin of error (Z* SE) will be less. That means ME will be less than ME for 95% conf level, which is 0.03
+
+
+
+6.12 Legalization of marijuana, Part I. The 2010 General Social Survey asked 1,259 US residents:
+"Do you think the use of marijuana should be made legal, or not?" 48% of the respondents
+said it should be made legal.
+
+(a) Is 48% a sample statistic or a population parameter? Explain.
+Answer: This is a sample statistic. The question was asked in a sample of the overall population (total US residents).
+
+(b) Construct a 95% confidence interval for the proportion of US residents who think marijuana
+should be made legal, and interpret it in the context of the data.
+Answer: 
+To check if this data meets the normal distribution criteria:
+1) The sample is definitely less than 10% of the overall US population, hence the sample is independent
+2) np = .48 * 1259 = 604, and n(1-p) = .52 * 1259 = 654, both the counts are greater than 10. Hence the success-failure condition is also met.
+So, we can say that this data meets the sample proportion meets the normal distribution criteria. Hence we can apply the normal distribution inference.
+
+For 95% confidence level, Z* = 1.96
+```{r}
+P_est_6.12 <- 0.48
+n_6.12 <- 1259
+SE_6.12 <- sqrt(P_est_6.12 * (1 - P_est_6.12) / n_6.12)
+upper_value_95_6.12 <- P_est_6.12 + 1.96 * SE_6.12
+lower_value_95_6.12 <- P_est_6.12 - 1.96 * SE_6.12
+
+upper_value_95_6.12
+lower_value_95_6.12
+```
+
+That means that we are 95% confident that 45.2% to 50.8% of the overall population of US thinks that marijuana should be made legal.
+
+(c) A critic points out that this 95% confidence interval is only accurate if the statistic follows a
+normal distribution, or if the normal model is a good approximation. Is this true for these
+data? Explain.
+Answer: Already explained in b
+
+(d) A news piece on this survey's findings states, "Majority of Americans think marijuana should
+be legalized." Based on your confidence interval, is this news piece's statement justified?
+Answer: 95% confidence level lies in 45.2% to 50.8%, That means the majority level of 50% lies within this range. So, we cannot say that the majority of the US population approves of making marijuana legal. Hence this statement is not justified
+
+
+
+6.20 Legalize Marijuana, Part II. As discussed in Exercise 6.12, the 2010 General Social
+Survey reported a sample where about 48% of US residents thought marijuana should be made
+legal. If we wanted to limit the margin of error of a 95% confidence interval to 2%, about how
+many Americans would we need to survey ?
+
+Answer:
+ME = Z* SE 
+ME < 0.02
+Z* for 95% confidence level = 1.96
+
+SE = sqrt(p(1-p) / n)
+
+1.96 X sqrt (0.48(1-0.48) / n) < 0.02
+n > (1.96)^2 X 0.48 x (1 - 0.48) / (0.02)^2
+n > 2397.16
+So a minimum of 2398 Americans must be surveyed.
+
+
+
+
+6.28 Sleep deprivation, CA vs. OR, Part I. According to a report on sleep deprivation by the
+Centers for Disease Control and Prevention, the proportion of California residents who reported
+insufficient rest or sleep during each of the preceding 30 days is 8.0%, while this proportion is
+8.8% for Oregon residents. These data are based on simple random samples of 11,545 California
+and 4,691 Oregon residents. Calculate a 95% confidence interval for the di???erence between the
+proportions of Californians and Oregonians who are sleep deprived and interpret it in context of
+the data.
+
+Answer:
+We will take here proportion of Oregonians MINUS proportion of Californians, as for the sample Oregonians value of proportion is more than the proportion of Californians
+```{r}
+n_Oregon <- 4691
+p_est_Oregon <- .088
+n_California <- 11545
+p_est_California <- .08
+point_estimate_6.28 <- p_est_Oregon - p_est_California
+SE_p_oregon_MINUS_p_cal <- sqrt((p_est_Oregon * (1 - p_est_Oregon) / n_Oregon) + (p_est_California * (1 - p_est_California) / n_California))
+
+Ninety_five_percent_upper_level_6.28 <- point_estimate_6.28 + SE_p_oregon_MINUS_p_cal
+Ninety_five_percent_lower_level_6.28 <- point_estimate_6.28 - SE_p_oregon_MINUS_p_cal
+
+Ninety_five_percent_upper_level_6.28
+Ninety_five_percent_lower_level_6.28
+```
+
+That means that we are 95% confidence that the difference between percentage of Oregon residents having sleep deprivation and percentage of California residents having sleep deprivation will fall in the range of 0.3% and 1.28 %
+
+
+
+
+6.44 Barking deer. Microhabitat factors associated with forage and bed sites of barking deer
+in Hainan Island, China were examined from 2001 to 2002. In this region woods make up 4.8%
+of the land, cultivated grass plot makes up 14.7% and deciduous forests makes up 39.6%. Of the
+426 sites where the deer forage, 4 were categorized as woods, 16 as cultivated grassplot, and 61 as
+deciduous forests. The table below summarizes these data.62
+Woods Cultivated grassplot Deciduous forests Other Total
+4 16 67 345 426
+
+(a) Write the hypotheses for testing if barking deer prefer to forage
+in certain habitats over others.
+Answer:
+H0: Barking deer does not have any preference to forage in certain habitats over other habitats
+H1: Barking deer has some preference to forage in certain habitats over other habitats
+
+(b) What type of test can we use to answer this research question?
+Anser: We will use the Chi-squared distribution here as it is for goodness of fit
+
+(c) Check if the assumptions and conditions required for this test
+are satisfied.
+Answer: 2 conditions should be met:
+1) Independence. All of the options are independent, so this condition is met
+2) Each particular scenario must have at least 5 expected cases. In this case, the expected value of woods would be 0.048 X 426 = 20.448, which is ore than =5. All the remaining expected counts are > 5 as well. So this condition is met.
+
+As both the conditions meet the Chi-square test conditions, we will procees with the Chi-distribution test.
+
+(d) Do these data provide convincing evidence that barking deer prefer
+to forage in certain habitats over others? Conduct an appropriate
+hypothesis test to answer this research question.
+Answer:
+```{r}
+Observed_6.44_woods <- 4
+Observed_6.44_cultivated_grassplot <- 16
+Observed_6.44_deciduous_forests <- 67
+Observed_6.44_other <- 345
+
+Estimated_6.44_woods <- 0.048 * 426
+Estimated_6.44_cultivated_grassplot <- 0.147 * 426
+Estimated_6.44_deciduous_forests <- 0.396 * 426
+Estimated_6.44_other <- (1 - 0.048 - 0.147 - 0.396) * 426
+
+Estimated_6.44_woods
+Estimated_6.44_cultivated_grassplot
+Estimated_6.44_deciduous_forests
+Estimated_6.44_other
+
+Chi_value_6.44 <- ((Observed_6.44_woods - Estimated_6.44_woods)^2 / Estimated_6.44_woods) + ((Observed_6.44_cultivated_grassplot - Estimated_6.44_cultivated_grassplot)^2 / Estimated_6.44_cultivated_grassplot) + ((Observed_6.44_deciduous_forests - Estimated_6.44_deciduous_forests)^2 / Estimated_6.44_deciduous_forests) + ((Observed_6.44_other - Estimated_6.44_other)^2 / Estimated_6.44_other)
+
+Chi_value_6.44
+
+df_6.44 <- 4 - 1
+p_6.44 <- 1-pchisq(Chi_value_6.44,df=df_6.44)
+p_6.44
+```
+
+As p-value = 0, which is certainly less than the significance value, that means the null hypothesis can be rejected in favor of alternate hypothesis. That means Barking deer has some preference to forage in certain habitats over other habitats.
