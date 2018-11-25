@@ -1,0 +1,168 @@
+---
+title: "Data 606 Chapter-7 Homework"
+author: "Deepak Mongia"
+date: "November 25, 2018"
+output: html_document
+---
+
+## 7.24 Nutrition at Starbucks, Part I. 
+The scatterplot below shows the relationship between
+the number of calories and amount of carbohydrates (in grams) Starbucks food menu items contain.
+21 Since Starbucks only lists the number of calories on the display items, we are interested in
+predicting the amount of carbs a menu item has based on its calorie content.
+
+(a) Describe the relationship between number of calories and amount of carbohydrates (in grams)
+that Starbucks food menu items contain.
+
+Answer:
+From the graph shown, it is very clear that there is a strong positive linear relationship between the 2 variables - calories and carbs in Starbucks food items.
+
+(b) In this scenario, what are the explanatory and response variables?
+
+Answer:
+In this case, Calories is the explanatory variable and carbs is the response variable
+
+(c) Why might we want to fit a regression line to these data?
+
+Answer: As we see that there is a strong positive relationship between the 2 variables, we would like to draw a regression line between these 2 variables. It will help us understand and predict how the presence of calories determines the quantity of carbs in a food item.
+
+(d) Do these data meet the conditions required for fitting a least squares line?
+
+Answer: For the least suqared lines fitting, we will check how the 4 conditions for the least squared line fair for this scenario:
+1) Linear: The relationship is linear as we can see from the scatterplot between the 2 variables.
+2) Nearly normal residuals check: The residuals plot clearly shows that the residuals is not close to normal.
+3) Constant variability: It is clear from the residual plot that there are outliers on wither side of the residual plots.
+4) Indepdendent observations: These are all independent observations as these are for different products.
+
+Even though 1 and 4 above meet the least square line criteria, but 2 and 3 are quite off the mark to say that this scenario meets the least squared line criteria.
+
+
+
+## 7.26 Body measurements, Part III. 
+Exercise 7.15 introduces data on shoulder girth and
+height of a group of individuals. The mean shoulder girth is 107.20 cm with a standard deviation
+of 10.37 cm. The mean height is 171.14 cm with a standard deviation of 9.41 cm. The correlation
+between height and shoulder girth is 0.67.
+
+(a) Write the equation of the regression line for predicting height.
+
+Answer:
+Here shoulder girth is the explanatory variable, x
+and height is the response variable, y
+
+x_bar = 107.2
+s_x = 10.37
+
+y_bar = 171.14
+s_y = 9.41
+
+R = 0.67
+
+slope, b1 = (s_y / s_x) * R
+```{r}
+x_bar_7.26 <- 107.2
+s_x_7.26 <- 10.37
+
+y_bar_7.26 <- 171.14
+s_y_7.26 <- 9.41
+
+R_7.26 <- 0.67
+
+
+#slope
+b1_7.26 = (s_y_7.26 / s_x_7.26) * R_7.26
+b1_7.26
+
+```
+
+Equation would be:
+y - y_bar_7.26 = b1_7.26 * (x - x_bar_7.26)
+y - 171.14 = 0.608 * (x - 107.2)
+y = 105.96 + 0.608 x
+
+(b) Interpret the slope and the intercept in this context.
+
+Answer : Intercept value = 105.96
+That signifies that when x (shoulder girth) = 0, y (height) = 105.96
+That does not sound to be a valid scenario, Hence we can say that suggests the height of the line
+
+Slope = 0.608 means that for every 1 cm of shoulder girth, the height increases by 1 cm.
+
+(c) Calculate R2 of the regression line for predicting height from shoulder girth, and interpret it
+in the context of the application.
+
+Answer:
+
+```{r}
+(R_7.26)^2
+```
+
+That means around 44.9% of the variability in height is measured by the shoulder girth.
+More the value of R^2 or R, more linear and clean the relationship.
+
+(d) A randomly selected student from your class has a shoulder girth of 100 cm. Predict the height
+of this student using the model.
+
+Answer:
+```{r}
+y_7.26_d <- 105.96 + 0.608 * 100
+y_7.26_d
+```
+
+(e) The student from part (d) is 160 cm tall. Calculate the residual, and explain what this residual
+means.
+
+Answer:
+```{r}
+y_7.26_oberved <- 160
+residual_7.26 <- y_7.26_oberved - y_7.26_d
+residual_7.26
+```
+
+Residual is -6.76, that means the observed value is less than the model calculated value, or the model over-predicted the value.
+
+(f) A one year old has a shoulder girth of 56 cm. Would it be appropriate to use this linear model
+to predict the height of this child?
+
+Answer:
+No, it would not be appropriate to use the model here, as we would be extrapolating as the shoulder girth of 56 cm is outside the observed range.
+
+
+
+## 7.30 Cats, Part I. 
+The following regression output is for predicting the heart weight (in g) of cats
+from their body weight (in kg). The coefficients are estimated using a dataset of 144 domestic cats.
+
+(a) Write out the linear model.
+
+Answer:
+y = -0.357 + 4.034 x
+
+(b) Interpret the intercept.
+
+Answer:
+When x (body weight) = 0, y (heart weight) = -0.357, that is not a valid scenario.
+Hence in this scenario, the intercept determines the height of the linear regression line.
+
+(c) Interpret the slope.
+
+Answer: 
+For every 1 kg increase of body weight, the heart weight increases by 4.034
+
+(d) Interpret R^2.
+
+Answer: 
+Body weights account for 64.66% of variability in heart weight.
+
+(e) Calculate the correlation coefficient.
+
+Answer:
+```{r}
+R2_7.30 <- 0.6466
+R_7.30 <- sqrt(R2_7.30)
+R_7.30
+```
+
+Correlation coefficient R = 0.804
+
+
