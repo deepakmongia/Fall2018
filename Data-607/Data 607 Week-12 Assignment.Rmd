@@ -1,0 +1,126 @@
+---
+title: "Data 607 Week-12 Assignment"
+author: "Deepak Mongia"
+date: "November 25, 2018"
+output: html_document
+---
+
+## Ask
+For this assignment, you should take information from a relational database and migrate it to a NoSQL database of your own choosing. 
+For the relational database, you might use the flights database, the tb database, the "data skills" database your team created for Project 3, or another database of your own choosing or creation.
+For the NoSQL database, you may use MongoDB (which we introduced in week 7), Neo4j, or another NoSQL database of your choosing.
+Your migration process needs to be reproducible.  R code is encouraged, but not required.  You should also briefly describe the advantages and disadvantages of storing the data in a relational database vs. your NoSQL database.
+
+
+For this assignment, I have decided to use the MySQL as my RDBMS, and MongoDB as my NoSQL database. Also, the flights database used earlier in Data 607 assignments has been used here.
+
+The first step is to load the MySQL database with the Flights database. The sql script to load the Flights database is present here:
+https://raw.githubusercontent.com/deepakmongia/Fall2018/master/Data-607/flights.sql
+The above script needs to be run before the below.
+
+Step-1 : Loading the required R packages:
+```{r}
+library(mongolite)
+library(RMySQL)
+```
+
+Step-2 : Connecting the MySQL database:
+```{r}
+mydb = dbConnect(MySQL(), user='root', password='Deepak1234#', dbname='flights', host='localhost')
+
+summary(mydb)
+```
+
+
+Now assuming that the Flights database has been loaded on to MySQL, we will use R to pull the data into R from MySQL.
+
+Step-3 : Pulling data from MySQL
+
+```{r}
+airlines.df <- dbGetQuery(mydb, "
+                          select * from airlines")
+head(airlines.df)
+
+
+airports.df <- dbGetQuery(mydb, "
+                          select * from airports")
+head(airports.df)
+
+
+flights.df <- dbGetQuery(mydb, "
+                          select * from flights")
+head(flights.df)
+
+
+planes.df <- dbGetQuery(mydb, "
+                          select * from planes")
+head(planes.df)
+
+
+weather.df <- dbGetQuery(mydb, "
+                          select * from weather")
+head(weather.df)
+
+```
+
+Step-4 : Inserting in the same structure format into MongoDB:
+```{r}
+mongo_airlines <- mongo(collection = "airlines", db = "flights")
+mongo_airlines$insert(airlines.df)
+
+
+mongo_airports <- mongo(collection = "airports", db = "flights")
+mongo_airports$insert(airports.df)
+
+
+mongo_flights <- mongo(collection = "flights", db = "flights")
+mongo_flights$insert(flights.df)
+
+
+mongo_planes <- mongo(collection = "planes", db = "flights")
+mongo_planes$insert(planes.df)
+
+
+mongo_weather <- mongo(collection = "weather", db = "flights")
+mongo_weather$insert(weather.df)
+```
+
+Even though we inserted here in the exact same structure as the MySQL into MongoDB, but MongoDB or any other document database is more effective with saving documents in the form of embedded document structures like JSON.
+
+
+Comparison of RDMBMS and NoSQL databases:
+
+
+RDBMS:
+
+Advantages:
+
+    Usage of uniform language across all the RDBMSes - SQL
+    
+    ACID properties - Atomicity, Consistency, Isolation, Durability
+    
+    Easy to use and maintain
+    
+Disadvantages:
+
+    Does not work really well and becomes difficult to manage as the DB size grows
+    
+    Unable to handle unstructured data
+    
+
+
+NoSQL databases:
+
+Advantages:
+
+    Can handle unstructured data very well
+    
+    Easily scalable as it is schema free
+    
+    The data is stored in same structure as it is presented
+    
+Disadvantages:
+
+    ACID properties are given away
+    
+    data redundancy may happen
