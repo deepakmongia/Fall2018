@@ -37,6 +37,7 @@ data for *Data Analysis Using Regression and Multilevel/Hierarchical Models*
 different course and columns represent variables about the courses and professors.
 
 ```{r load-data, eval=TRUE}
+rm(list = ls())
 load("more/evals.RData")
 ```
 
@@ -127,7 +128,7 @@ Answer:
 plot(evals$score ~ jitter(evals$bty_avg, 1))
 
 ```
-This gives jitter (noise) on the x-axis, meaning the points are made apart so that more number of points could be plotted.
+This gives jitter (noise) on the x-axis, meaning the points are made apart so that more number of points could be plotted and are visible.
 
 5.  Let's see if the apparent trend in the plot is something more than
     natural variation. Fit a linear model called `m_bty` to predict average
@@ -155,6 +156,32 @@ ggplot(evals, aes(x=bty_avg, y=score)) +
 6.  Use residual plots to evaluate whether the conditions of least squares
     regression are reasonable. Provide plots and comments for each one (see
     the Simple Regression Lab for a reminder of how to make these).
+
+Plotting the residual plot:
+```{r}
+plot(m_bty$residuals ~ evals$bty_avg)
+abline(h = 0, lty = 3)
+```
+
+Creating the residuals histogram
+```{r}
+hist(m_bty$residuals)
+```
+
+Q-Q Plot for residuals:
+```{r}
+qqnorm(m_bty$residuals)
+qqline(m_bty$residuals)
+```
+
+Let us evaluate the 4 conditions for fitting the least squared line for this scenario:
+1) Linearity: From the linear model and the plot made from the lm model, it is clear that the data trend is linear for this one. Hence this condition is satisfied.
+2) Nearly normal residuals: As seen from the histogram, the residuals are not nearly normal for this. Hence this condition is not satisfied too.
+3) Constant Variability: From the residuals plot drawn above, the variability s not constant as the positive residuals vary from 0 to 1 which the negative ones go as far as -2. Hence the constant variability condition is also not satisfied.
+4) Independent observations: The observations can be said to be independent as this is not a time based observation.
+
+As the conditions for normal residuals and constant variability are not satisfied, we can say that the least squared line cannot be fitted for this scenario.
+
 
 ## Multiple linear regression
 
@@ -187,7 +214,7 @@ In order to see if beauty is still a significant predictor of professor score
 after we've accounted for the gender of the professor, we can add the gender 
 term into the model.
 
-```{r scatter-score-bty_avg_gender, eval = FALSE}
+```{r scatter-score-bty_avg_gender, include=TRUE}
 m_bty_gen <- lm(score ~ bty_avg + gender, data = evals)
 summary(m_bty_gen)
 ```
@@ -195,6 +222,34 @@ summary(m_bty_gen)
 7.  P-values and parameter estimates should only be trusted if the
     conditions for the regression are reasonable. Verify that the conditions
     for this model are reasonable using diagnostic plots.
+
+
+Answer:
+
+Building the residual plot:
+```{r}
+plot(m_bty_gen$residuals ~ evals$bty_avg)
+abline(h = 0, lty = 3)
+```
+
+Histogram of residuals:
+```{r}
+hist(m_bty_gen$residuals)
+```
+
+Q-Q Plot:
+```{r}
+qqnorm(m_bty_gen$residuals)
+qqline(m_bty_gen$residuals)
+```
+
+Checking for the regression:
+1) Linearity: The data looks to be linear.
+2)Nearly normal Residuals: From the residuals histogram, it is clear the histogram is skewed on the left, and is not nearly normal.
+3) Constant Variability: From the residual plot, similar to the previous one with the model with only bty_avg, the variability is not constant.
+4) Indenpendent Observations : The observations are all independent.
+
+However 1 and 4 conditions are met, 2 and 4 are not satisfied. Hence all the conditions are not met.
 
 8.  Is `bty_avg` still a significant predictor of `score`? Has the addition
     of `gender` to the model changed the parameter estimate for `bty_avg`?
@@ -234,15 +289,28 @@ variable, which is the level that is coded as a 0, using the`relevel` function.
 Use `?relevel` to learn more.)
 
 Answer:
-```{r}
 
-```
+score = 3.75 + 0.074 X bty_avg + 0.173 X gender
+where gender = 1 for male
+and gender = 0 for female
+
+For males:
+score = 3.75 + 0.074 X bty_avg + 0.173
 
 
 10. Create a new model called `m_bty_rank` with `gender` removed and `rank` 
     added in. How does R appear to handle categorical variables that have more 
     than two levels? Note that the rank variable has three levels: `teaching`, 
     `tenure track`, `tenured`.
+
+```{r}
+m_bty_rank <- lm(score ~ bty_avg + rank, data = evals)
+summary(m_bty_rank)
+
+multiLines(m_bty_rank)
+```
+
+R adds (n - 1) variables for a categorical value with n categories.
 
 The interpretation of the coefficients in multiple regression is slightly 
 different from that of simple regression. The estimate for `bty_avg` reflects
@@ -263,6 +331,8 @@ picture color.
     Why? *Hint:* Think about which variable would you expect to not have any 
     association with the professor score.
 
+Answer: The variable pic_outfit is expected to be not a predictor for the score.
+
 Let's run the model...
 
 ```{r m_full, eval = FALSE, tidy = FALSE}
@@ -275,7 +345,12 @@ summary(m_full)
 12. Check your suspicions from the previous exercise. Include the model output
     in your response.
 
+Answer:
+I was expecting the variable cls_profs (number of professors teaching sections in course in sample: single, multiple.) to be at least at some level a predictor of the score. But as we see the p-value of this variable is 0.77 which is very high. That means this variable cannot be a predictor of the score.
+
 13. Interpret the coefficient associated with the ethnicity variable.
+Answer: 
+The coefficient for ethnicity of non-minority is 0.12 while 0 in case of a minority. That means for professors from non-minority have a score of 0.12 greater than the score for a minor  ethiicity background professor. 
 
 14. Drop the variable with the highest p-value and re-fit the model. Did the
     coefficients and significance of the other explanatory variables change?
@@ -284,26 +359,103 @@ summary(m_full)
     the model.) If not, what does this say about whether or not the dropped
     variable was collinear with the other explanatory variables?
 
+Answer:Highest p-value from the full model is for cls_profssingle. Hence removing the variable cls_profs, and rebuilding the model.
+```{r}
+m_full_minus_cls_profs <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+                             + cls_students + cls_level + cls_credits + bty_avg 
+                             + pic_outfit + pic_color, data = evals)
+summary(m_full_minus_cls_profs)
+```
+
+
 15. Using backward-selection and p-value as the selection criterion,
     determine the best model. You do not need to show all steps in your
     answer, just the output for the final model. Also, write out the linear
     model for predicting score based on the final model you settle on.
 
+Answer:
+Moving forward with the m_full_minus_cls_profs. The highest p-value is for the variable: cls_levelupper which is 0.29. Hence removing this variable cls_level
+
+```{r}
+model2 <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             + cls_students + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(model2)
+```
+
+Now we see that the highest p-value is for cls_students (0.31) which is greater than SL of 0.05. Hence moving forward and removing this field from the regression model:
+```{r}
+model3 <- lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval 
+             + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(model3)
+```
+
+Now we see that the variable ranktenuredhas the highest p-value of 0.2 which is greater than 0.05. Hence removing this column:
+```{r}
+model4 <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval 
+             + cls_credits + bty_avg 
+             + pic_outfit + pic_color, data = evals)
+summary(model4)
+```
+
+Now wee that the column pic_outfitnot formal has the highest p-value of 0.09 which is greater than 0.05. Hence removing this field:
+```{r}
+model5 <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval 
+             + cls_credits + bty_avg 
+             + pic_color, data = evals)
+summary(model5)
+```
+
+Now the biggest p-value is for languagenon-english which is 0.047. As it is less than 0.05, it can be ignored. And this is the final model.
+
 16. Verify that the conditions for this model are reasonable using diagnostic 
     plots.
+
+Answer:
+Building the residual plot:
+```{r}
+plot(model5$residuals ~ model5$fitted.values)
+abline(h = 0, lty = 3)
+```
+
+Histogram of residuals:
+```{r}
+hist(model5$residuals)
+```
+
+Q-Q Plot:
+```{r}
+qqnorm(model5$residuals)
+qqline(model5$residuals)
+```
+
+Checking for the regression:
+1) Linearity: The data looks to be linear.
+2)Nearly normal Residuals: From the residuals histogram, it is clear the histogram is skewed on the left, and is not nearly normal.
+3) Constant Variability: From the residual plot, similar to the previous one with the model with only bty_avg, the variability is not constant.
+4) Indenpendent Observations : The observations are all independent.
+
 
 17. The original paper describes how these data were gathered by taking a
     sample of professors from the University of Texas at Austin and including 
     all courses that they have taught. Considering that each row represents a 
     course, could this new information have an impact on any of the conditions 
     of linear regression?
+Answer: It might be impacted. There might be multiple courses taken by the same professor, so in that case the sameprofessor might have got 2 different scores for the 2 different courses he or she takes.
 
 18. Based on your final model, describe the characteristics of a professor and 
     course at University of Texas at Austin that would be associated with a high
     evaluation score.
 
+Answer:
+High evaluation score means the categorical variables with the positive values have the category as represented by the model, and the categorical variables with a negative coefficient has the other category, so that the score becomes maximum.
+Hence, ethnicity of non-minority, gender male, language english, cls_credit of one level, pic_color value as black & white - will be the ones with the highest scores.
+
 19. Would you be comfortable generalizing your conclusions to apply to professors
     generally (at any university)? Why or why not?
+
+Answer: No, the conclusions cannot be generalized to other universities, as there can be many other factors impacting the scores.
 
 <div id="license">
 This is a product of OpenIntro that is released under a [Creative Commons Attribution-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-sa/3.0). This lab was written by 
