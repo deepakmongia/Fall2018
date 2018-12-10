@@ -1,6 +1,6 @@
 ---
 title: "Data 607 Final Project - Part-2 : Tweets Cleaning and Analysis"
-author: "Deepak Mongia"
+author: "Deepak Mongia and Charls Joseph"
 date: "December 8, 2018"
 output: html_document
 ---
@@ -27,30 +27,28 @@ This is the second part of the project, where we will get the data from the data
 
 ### Pre-requisites:
 1) To run this code, MySQL must be installed in the local computer.
-2) The MySQL script given at this GitHub location must be run, so that the required schema and the table has been created before running this RMD File: https://github.com/deepakmongia/Fall2018/blob/master/Data%20607%20Final%20Project/Data%20607%20Final%20Project%20-%20Twitter%20MySQL%20Queries.sql
+2) The MySQL script given at this GitHub location must be run, so that the required schema and the table has been created before running this RMD File: https://raw.githubusercontent.com/charlsjoseph/CUNY-Data607/master/Data607-Final_Project/Data%20607%20Final%20Project%20-%20Twitter%20MySQL%20Queries.sql
+3) All teh above libraries (R packages) must be installed on the local.
 
+Read the tweets data from the CSV file which has been created from part-1 from the data lake which is MongoDB database for this project.
+CSV link is: https://raw.githubusercontent.com/charlsjoseph/CUNY-Data607/master/Data607-Final_Project/data/ExtractedData_iphone_xs.csv
 
-The below part if just a creation of the tweet data thru the API call, and will be replaced with MongoDB data fetch.
-```{r cachedChunk, cache=TRUE, echo=FALSE}
-create_token("607 Final Project",
-            consumer_key = "gHstONqMeOBv1rt5RDeuMgUik",
-             consumer_secret = "nm4D79aZpCRKFnfdAUq5AUsKw6FhN10Nl4BWgQykq9CIWHd0Ho",
-             access_token = "1061784425728483328-mcQS7h4cQrt8s0GB1kCjPp8aGda3Kt",
-             access_secret = "AzoleHP9GDlmV5bTmg3wvYUWvUYuZ2V8myiqukm6hAHoK")
+### Read CSV (Tweets data from staging database)
+```{r cachedChunk, cache=TRUE}
+iphone_xs_csv_link <- "https://raw.githubusercontent.com/charlsjoseph/CUNY-Data607/master/Data607-Final_Project/data/ExtractedData_iphone_xs.csv"
 
-iphone_xs_raw_tweets <- search_tweets("iphone xs", n = 18000, include_rts = FALSE, retryonratelimit = TRUE, lang = "en")
+iphone_xs_tweets_required <- read.csv(iphone_xs_csv_link, header = TRUE)
 
-dim(iphone_xs_raw_tweets)
+dim(iphone_xs_tweets_required)
+
+iphone_xs_tweets_required %>% head(5) %>% kable() %>% kable_styling()
 
 ```
 
-### Clean-up of the tweets to keep only the tweets data which needs to be reviewed for this analysis
-### Here we are grouping the tweet messages based on the user ID (screen name) and this will be used further to remove the advertizements
+### Counts per user
+Clean-up of the tweets to keep only the tweets data which needs to be reviewed for this analysis.
+Here we are grouping the tweet messages based on the user ID (screen name) and this will be used further to remove the advertizements.
 ```{r cachedChunk2, cache=TRUE}
-iphone_xs_raw_tweets %>% head(4) %>% kable() %>% kable_styling()
-
-### Get only the required fields
-iphone_xs_tweets_required <- iphone_xs_raw_tweets %>% select(1:5, is_retweet, lang, status_url, location)
 
 ##Now, grouping the tweets base don the screen_name
 iphone_xs_tweets_required_group_user <- iphone_xs_tweets_required %>% group_by(screen_name)
@@ -63,7 +61,8 @@ head(per_user)
 
 ```
 
-### Now as we see above, there are close to 300 users on the top which have a bigger numer of tweets on the same topic - iphone xs. So, to lessen the occurences or impact of the advertizements in our analysis, we are removing the users from our analysis who have 5 or more tweets on this topic.
+### Attempt to remove ads
+Now as we see above, there are close to 300 users on the top which have a bigger numer of tweets on the same topic - iphone xs. So, to lessen the occurences or impact of the advertizements in our analysis, we are removing the users from our analysis who have 5 or more tweets on this topic.
 
 ```{r cachedChunk3, cache=TRUE}
 per_user <- per_user %>% filter(number_of_messages < 5)
@@ -79,10 +78,9 @@ iphone_xs_tweets_required_text <- iphone_xs_tweets_required_users %>% select(5)
 iphone_xs_tweets_required_text %>% head(4) %>% kable() %>% kable_styling()
 ```
 
-### Storing the text of all the required tweets in a MySQL database. This will help easy fetch from the database whenever we need it for our analysis.
-
+Storing the text of all the required tweets in a MySQL database. This will help easy fetch from the database whenever we need it for our analysis.
 Initial few code lines are to set up the MySQL schema and table structure so the tweet text can be written to MySQL table.
-##1. Connecting to the database, and creating schema and table.
+### Connect to MySQL
 ```{r}
 ## Connecting to MySQL
 mydb = dbConnect(MySQL(), user='root', password='Deepak1234#', dbname='twitter', host='localhost')
@@ -111,7 +109,7 @@ nchar(iphone_xs_tweets_required_text[10807,1])
 
 ```
 
-###2. Storing the data (tweet text) into MySQL table.
+### Storing data in Relational database
 ```{r cachedChunk5, cache=TRUE}
 ## There were some tweets with double quote, replacing it with a space to avoid any error while interting into MySQL
 iphone_xs_tweets_required_text$text <- str_replace_all(iphone_xs_tweets_required_text$text, '"', ' ')
@@ -131,14 +129,14 @@ for (i in 1:no_of_tweets) {
 
 ```
 
-### Now get the tweets from the MySQL data base
+### Fetch from MySQL
 ```{r cachedChunk6, cache=TRUE}
 get.MySQL.table.query <- paste("select * from twitter;")
 iphone_xs_tweets_from_MySQL_df <- dbGetQuery(mydb, get.MySQL.table.query)
 
 ```
 
-### Text Mining
+### Text Mining and Word Cloud
 ```{r}
 ### Loading the tweets text into a corpus
 myCorpus <- Corpus(VectorSource(iphone_xs_tweets_from_MySQL_df$tweet_text))
@@ -208,7 +206,49 @@ wordcloud(words = twitter.words,
 
 ```
 
+
+Now, from the word cloud, we see that there are many words like below, which do not carry much meaning in the context of this analysis and hence can be removed. Some of these words ame from the ad tweets, some are common words like phone, youtub, etc. 
+We will remove such words now, so that we can have a better and a more meaningful word cloud.
+```{r}
+myCorpus <- tm_map(myCorpus, removeWords, c("max", "appl", "giveaway", "youtub", "win", "phone", "gravyardgirl", "gravyardgirliphonegiveaway"))
+
+## Building a fresh tdm now as we just removed some words.
+tdm <- TermDocumentMatrix(myCorpus)
+
+tdm <- as.matrix(tdm)
+
+## Building the updated word frequency
+word.freq <- rowSums(tdm)
+word.freq <- sort(word.freq, decreasing = TRUE)
+set.seed(222)
+
+## Top 20 used words now
+word.freq[1:20]
+
+
+## Building the updated word cloud
+twitter.words <- names(word.freq)
+
+wordcloud(words = twitter.words, 
+          freq = word.freq,
+          max.words = 150,
+          random.order = F,
+          min.freq = 5,
+          colors = brewer.pal(8, 'Dark2'),
+          scale = c(5,0.3),
+          rot.per = 0.3)
+
+```
+
+
+From the updated word cloud above, we get some good insights as below:
+
+- People are talking positive words like - "like", "get", "want", "buy", "great", hence meaning a positive sentiment overall
+
+- Words like "galaxy", "samsung", "android" also appear here, indicating that the users are comparing iphone xs as compared to android phones
+
 ### Sentiment Analysis
+
 ```{r cachedChunk7, cache=TRUE}
 sentiment_scores <- get_nrc_sentiment(iphone_xs_tweets_from_MySQL_df$tweet_text)
 head(sentiment_scores)
@@ -222,6 +262,11 @@ barplot(colSums(sentiment_scores),
 
 ## Conclusions:
 ### 1. The overall response from the people on the iphone XS is positive.
-### 2. As there are so many users / people interested in the brand, there have been many advertizements going around to woo customers by so many third party online companies.
-### 3. With such hype around a product by a company like Apple, many people voice their views and opinions online. And Twitter being one of the most used social networking portal, it gave a good deal of tweets to analyze the customer sentiment.
-### 4. Even if there is not a single conclusion from this analysis we found some good information about the overall sentiments around iPhone XS which can be seen in the plots and points shown in this document.
+### 2. Some very positive words appear on the top of the list of mostly used words in iphone xs tweets, as seen in the word cloud.
+### 3. As there are so many users / people interested in the brand, there have been many advertizements going around to woo customers by so many third party online companies.
+### 4. With such hype around a product by a company like Apple, many people voice their views and opinions online. And Twitter being one of the most used social networking portal, it gave a good deal of tweets to analyze the customer sentiment.
+### 5. Even if there is not a single conclusion from this analysis we found some good information about the overall sentiments around iPhone XS which can be seen in the plots and points shown in this document.
+
+### Challenges Faced:
+1. We faced a challenge while writing the data.frame directly into MySQL database using the function dbWriteTable due to an error in Production MySQL, which was preventing writing the data into MySQL. Hence we had to create the MySQL schema and table using the MySQL script as a separate entity, and kept only 1 field (tweet text) as the query had to be manually created at the run time for the whole data.frame for the tweets for iphone XS, using a loop.
+2. There have been many ads on the tweets which have the term - iphone xs. Removing them was a challenge that we faced. To lessen the impact of the ads, we had set up a cut-off limit for only consuming the users with up to 4 tweets in the overall fetch. This will ensure that the users who had many tweets (5 or more in this case per our assumption to lessen impact) were not accounted for in the analysis. Also we removed such words like "giveaway", "win", etc. which are more likely to be used in ads.
