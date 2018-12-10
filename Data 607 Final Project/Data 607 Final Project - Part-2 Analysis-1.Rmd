@@ -25,6 +25,11 @@ library(reshape2)
 
 This is the second part of the project, where we will get the data from the data lake and clean it, store into MySQL, and perform the data analysis on the tweets text.
 
+### Pre-requisites:
+1) To run this code, MySQL must be installed in the local computer.
+2) The MySQL script given at this GitHub location must be run, so that the required schema and the table has been created before running this RMD File: https://github.com/deepakmongia/Fall2018/blob/master/Data%20607%20Final%20Project/Data%20607%20Final%20Project%20-%20Twitter%20MySQL%20Queries.sql
+
+
 The below part if just a creation of the tweet data thru the API call, and will be replaced with MongoDB data fetch.
 ```{r cachedChunk, cache=TRUE, echo=FALSE}
 create_token("607 Final Project",
