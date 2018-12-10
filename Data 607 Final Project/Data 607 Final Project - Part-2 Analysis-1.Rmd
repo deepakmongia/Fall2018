@@ -4,7 +4,7 @@ author: "Deepak Mongia"
 date: "December 8, 2018"
 output: html_document
 ---
-###Tweets Clean-up and analysis
+##Tweets Clean-up and analysis
 ```{r setup, include=FALSE}
 library(rtweet)
 library(RCurl)
@@ -17,25 +17,30 @@ library(SentimentAnalysis)
 library(RMySQL)
 library(stringr)
 library(kableExtra)
+library(syuzhet)
+library(lubridate)
+library(scales)
+library(reshape2)
 ```
 
 This is the second part of the project, where we will get the data from the data lake and clean it, store into MySQL, and perform the data analysis on the tweets text.
 
 The below part if just a creation of the tweet data thru the API call, and will be replaced with MongoDB data fetch.
-```{r cachedChunk, cache=TRUE}
+```{r cachedChunk, cache=TRUE, echo=FALSE}
 create_token("607 Final Project",
-            consumer_key = "xxx",
-             consumer_secret = "xxx",
-             access_token = "xxx",
-             access_secret = "xxx")
+            consumer_key = "gHstONqMeOBv1rt5RDeuMgUik",
+             consumer_secret = "nm4D79aZpCRKFnfdAUq5AUsKw6FhN10Nl4BWgQykq9CIWHd0Ho",
+             access_token = "1061784425728483328-mcQS7h4cQrt8s0GB1kCjPp8aGda3Kt",
+             access_secret = "AzoleHP9GDlmV5bTmg3wvYUWvUYuZ2V8myiqukm6hAHoK")
 
 iphone_xs_raw_tweets <- search_tweets("iphone xs", n = 18000, include_rts = FALSE, retryonratelimit = TRUE, lang = "en")
 
 dim(iphone_xs_raw_tweets)
 
-##iphone_xs_raw_tweets[1:10] %>% kable() %>% kable_styling()
 ```
 
+### Clean-up of the tweets to keep only the tweets data which needs to be reviewed for this analysis
+### Here we are grouping the tweet messages based on the user ID (screen name) and this will be used further to remove the advertizements
 ```{r cachedChunk2, cache=TRUE}
 iphone_xs_raw_tweets %>% head(4) %>% kable() %>% kable_styling()
 
@@ -53,7 +58,7 @@ head(per_user)
 
 ```
 
-## Now as we see above, there are close to 300 users on the top which have a bigger numer of tweets on the same topic - iphone xs. So, to lessen the occurences or impact of the advertizements in our analysis, we are removing the users from our analysis who have 5 or more tweets on this topic.
+### Now as we see above, there are close to 300 users on the top which have a bigger numer of tweets on the same topic - iphone xs. So, to lessen the occurences or impact of the advertizements in our analysis, we are removing the users from our analysis who have 5 or more tweets on this topic.
 
 ```{r cachedChunk3, cache=TRUE}
 per_user <- per_user %>% filter(number_of_messages < 5)
@@ -69,7 +74,8 @@ iphone_xs_tweets_required_text <- iphone_xs_tweets_required_users %>% select(5)
 iphone_xs_tweets_required_text %>% head(4) %>% kable() %>% kable_styling()
 ```
 
-## Storing the text of all the required tweets in a MySQL database. This will help easy fetch from the database whenever we need it for our analysis.
+### Storing the text of all the required tweets in a MySQL database. This will help easy fetch from the database whenever we need it for our analysis.
+
 Initial few code lines are to set up the MySQL schema and table structure so the tweet text can be written to MySQL table.
 ##1. Connecting to the database, and creating schema and table.
 ```{r}
@@ -100,7 +106,7 @@ nchar(iphone_xs_tweets_required_text[10807,1])
 
 ```
 
-## Storing the data (tweet text) into MySQL table.
+###2. Storing the data (tweet text) into MySQL table.
 ```{r cachedChunk5, cache=TRUE}
 ## There were some tweets with double quote, replacing it with a space to avoid any error while interting into MySQL
 iphone_xs_tweets_required_text$text <- str_replace_all(iphone_xs_tweets_required_text$text, '"', ' ')
@@ -120,14 +126,14 @@ for (i in 1:no_of_tweets) {
 
 ```
 
-## Now get the tweets from the MySQL data base
+### Now get the tweets from the MySQL data base
 ```{r cachedChunk6, cache=TRUE}
 get.MySQL.table.query <- paste("select * from twitter;")
 iphone_xs_tweets_from_MySQL_df <- dbGetQuery(mydb, get.MySQL.table.query)
 
 ```
 
-## Text Mining
+### Text Mining
 ```{r}
 ### Loading the tweets text into a corpus
 myCorpus <- Corpus(VectorSource(iphone_xs_tweets_from_MySQL_df$tweet_text))
@@ -196,3 +202,21 @@ wordcloud(words = twitter.words,
           rot.per = 0.3)
 
 ```
+
+### Sentiment Analysis
+```{r cachedChunk7, cache=TRUE}
+sentiment_scores <- get_nrc_sentiment(iphone_xs_tweets_from_MySQL_df$tweet_text)
+head(sentiment_scores)
+
+barplot(colSums(sentiment_scores),
+        las = 2,
+        col = rainbow(10),
+        ylab = "Count",
+        main = "Sentiment scores for iphone xs Tweets")
+```
+
+## Conclusions:
+### 1. The overall response from the people on the iphone XS is positive.
+### 2. As there are so many users / people interested in the brand, there have been many advertizements going around to woo customers by so many third party online companies.
+### 3. With such hype around a product by a company like Apple, many people voice their views and opinions online. And Twitter being one of the most used social networking portal, it gave a good deal of tweets to analyze the customer sentiment.
+### 4. Even if there is not a single conclusion from this analysis we found some good information about the overall sentiments around iPhone XS which can be seen in the plots and points shown in this document.
