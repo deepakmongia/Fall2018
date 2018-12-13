@@ -1,0 +1,251 @@
+---
+title: "Deepak Mongia Data 606 Project"
+author: "Deepak Mongia"
+date: "December 10, 2018"
+output: html_document
+---
+
+### Part 1 - Introduction
+
+This is the project for Data 606 for Fall 2018. The purpose of this project is to conduct a reproducible analysis. As a part of this project, we will explore a data set which was chosen as a part of the project proposal that was submitted earlier. We will explore the data set and try to find the relationships among the variables, and between the response valriables and the independent variables.
+
+### Part 2 - Data
+
+## Energy efficiency Data Set
+
+For this project for Data 606, we are going to work on the Energy Efficient data set which is present at this web link: http://archive.ics.uci.edu/ml/datasets/Energy+efficiency#
+
+```{r echo=FALSE}
+library(readxl)
+library(ggplot2)
+library(gridExtra)
+
+
+energy.efficiency.df1 <- read_xlsx("ENB2012_data.xlsx", sheet = 1)
+
+head(energy.efficiency.df1)
+
+names(energy.efficiency.df1) <- c("relative.compactness", "surface.area", "wall.area", "roof.area", "overall.height", "orientation", "glazing.area", "glazing.area.distribution", "heating.load", "cooling.load")
+
+summary(energy.efficiency.df1)
+
+head(energy.efficiency.df1)
+
+```
+
+
+Attribute Details:
+
+Relative Compactness        -     Ratio
+
+Surface Area                -     sq. meters
+
+Wall Area                   -     sq. meters
+
+Roof Area                   -     sq. meters
+
+Overall Height              -     meters
+
+Orientation                 -     2:North, 3:East, 4:South, 5:West
+
+Glazing area (ratio)        -     0.00, 0.10, 0.25, 0.40
+
+Glazing area distribution   -     1:Uniform, 2:North, 3:East, 4:South, 5:West
+
+Heating Load                -     kWh/sq. meters
+
+Cooling Load                -     kWh/sq. meters
+
+As we see above, the data set contains the various independent variables of the buildings for which the data was collected, along with the response variables.
+
+## Data Collection
+The data is present on the uci weblink: http://archive.ics.uci.edu/ml/datasets/Energy+efficiency#
+From the web page, we see that the dataset was created by Angeliki Xifara (angxifara '@' gmail.com, Civil/Structural Engineer) and was processed by Athanasios Tsanas (tsanasthanasis '@' gmail.com, Oxford Centre for Industrial and Applied Mathematics, University of Oxford, UK).
+
+## Cases 
+Each row or case signifies a building for which the attributes are measured. There are total of 768 buildings or cases.
+
+## Variables
+Variables have been given above in the introduction section.
+The 2 response variables are: Heating Load and Cooling Lead. 
+The first 8 variables are indepdendent variables.
+
+## Type of study
+As the data is already collected, and no experiment will be performed, this is an observational study.
+The study that we are going to perform is related to:
+Do the heating load and cooling load of a building depend on the other independent variables ?
+
+## Scope of inference
+Population of interest - All the buildings that are built throughout.
+
+Here, we have a sample of 768 buildings. We want to check if the results can be applied or infered for the whole population of buildings, by checking the results of these observations.
+
+Generally, the following 3 conditions are checked:
+
+1) Random: The data or the sample collected must be random. In this case the buildings selected for the study are selected randomly. Hence this condition is met.
+
+2) Independent: Generally if the sample size is less than 10% of the total population, the sample can be said to be independent. In this case 768 is a very small number compared to the total number of buildings overall. Hence we can say that this sample observations are independent.
+
+3) Normal distribution: 
+
+```{r}
+hist(energy.efficiency.df1$heating.load)
+```
+
+
+
+### Exploratory data analysis
+```{r}
+summary(energy.efficiency.df1)
+
+str(energy.efficiency.df1)
+
+### Drawaing the histograms of all the variables including the response variables
+hist(energy.efficiency.df1$relative.compactness)
+hist(energy.efficiency.df1$surface.area)
+hist(energy.efficiency.df1$wall.area)
+hist(energy.efficiency.df1$roof.area)
+hist(energy.efficiency.df1$overall.height)
+hist(energy.efficiency.df1$orientation)
+hist(energy.efficiency.df1$glazing.area)
+hist(energy.efficiency.df1$glazing.area.distribution)
+hist(energy.efficiency.df1$heating.load)
+hist(energy.efficiency.df1$cooling.load)
+
+### Plotting the boxplots of all the variables including the response variables
+boxplot(energy.efficiency.df1$relative.compactness)
+boxplot(energy.efficiency.df1$surface.area)
+boxplot(energy.efficiency.df1$wall.area)
+boxplot(energy.efficiency.df1$roof.area)
+boxplot(energy.efficiency.df1$overall.height)
+boxplot(energy.efficiency.df1$orientation)
+boxplot(energy.efficiency.df1$glazing.area)
+boxplot(energy.efficiency.df1$glazing.area.distribution)
+boxplot(energy.efficiency.df1$heating.load)
+boxplot(energy.efficiency.df1$cooling.load)
+```
+
+### Inference
+
+## Simple Linear Regression for heating load vs each of the independent variables
+Now let us explore the relationship between a response variable and each of the independent variables individually. 
+
+1.  Heating Load vs Relative compactness:
+Checking how well the variable relative.compactness is a predictor of a response variable say heating.load. We will be starting with simple linear regression first.
+```{r}
+heating.load.m1 <- lm(heating.load ~ relative.compactness, energy.efficiency.df1)
+summary(heating.load.m1)
+
+ggplot(energy.efficiency.df1, aes(x=relative.compactness, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=relative.compactness, y=predict(heating.load.m1, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+As we see above from the summary if the above model, the coefficient row shows 3 stars on the relative.compactness row. That means that the response variable - heating load is strongly statistically related to the relative.compactness of the building. 
+R-squared value of 0.3872 means that 38.72 per cent of the variability in the heating load is due to the relative compactness.
+
+2. Heating Load vs surface area:
+```{r}
+heating.load.m2 <- lm(heating.load ~ surface.area, energy.efficiency.df1)
+summary(heating.load.m2)
+
+ggplot(energy.efficiency.df1, aes(x=surface.area, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=surface.area, y=predict(heating.load.m2, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+3. Heating Load vs wall area:
+```{r}
+heating.load.m3 <- lm(heating.load ~ wall.area, energy.efficiency.df1)
+summary(heating.load.m3)
+
+ggplot(energy.efficiency.df1, aes(x=wall.area, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=wall.area, y=predict(heating.load.m3, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+4. Heating Load vs roof area
+```{r}
+heating.load.m4 <- lm(heating.load ~ roof.area, energy.efficiency.df1)
+summary(heating.load.m4)
+
+ggplot(energy.efficiency.df1, aes(x=roof.area, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=roof.area, y=predict(heating.load.m4, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+5. Heating Load vs overall height
+```{r}
+heating.load.m5 <- lm(heating.load ~ overall.height, energy.efficiency.df1)
+summary(heating.load.m5)
+
+ggplot(energy.efficiency.df1, aes(x=overall.height, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=overall.height, y=predict(heating.load.m5, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+6. Heating Load vs Glazing area
+```{r}
+heating.load.m6 <- lm(heating.load ~ glazing.area, energy.efficiency.df1)
+summary(heating.load.m6)
+
+ggplot(energy.efficiency.df1, aes(x=glazing.area, y=heating.load)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=glazing.area, y=predict(heating.load.m6, newdata = energy.efficiency.df1)), color = "blue")
+```
+
+### Step-by-step multiple linear model approach
+So, from the above regression models between the heating load and 6 of the independent variables, it is very clear that the heating load has statistcal dependence on each of these. 
+Hence, it would be better to build a relationship that best fits all these variables. So, we will start with using all these variables and build a multiple linear regression model.
+
+Building a multiple-linear model with all the variables:
+```{r}
+heating.load.ml1 <- lm(formula = heating.load  ~ relative.compactness + surface.area + wall.area + roof.area + overall.height +
+                              orientation + glazing.area + glazing.area.distribution,
+                             data = energy.efficiency.df1)
+
+summary(heating.load.ml1)
+```
+
+As we see above in the summary of this multiple linear model, orientation does not have any relationship with the heating area. Also, if we see the p-value orientation, which is very high 0.8, hence this variable does not have a defined relationship with the heating load. So, we can remove this variable - orientation.
+Also roof.area coefficient is NA, that means roof.area is dependent on some other independent variables, and hence roof.area can also be removed.
+There is another variable - glazing.area.distribution which has a strong statistical relationship with the heating.load, but the p-value is slightly large as compared to the p-value of other variables. But still, the p-value (0.00367) is still quite less than the significant level of 0.05. Hence we willcontinue with the glazing.area.distribution
+
+So, from above, removing the 2 variables: roof.area and orientation
+
+Building a new multiple linear model:
+
+```{r}
+heating.load.ml2 <- lm(formula = heating.load  ~ relative.compactness + surface.area + wall.area + overall.height +
+                              glazing.area + glazing.area.distribution,
+                             data = energy.efficiency.df1)
+
+summary(heating.load.ml2)
+```
+
+Now that we see from this new model summary, none of the variables has a p-value which is greater than the signifcant level of 0.05. Hence we can assume that this is the best model with the linear regression that can be fit for the heating.load.
+Of course there can be some non-linear regression models that can better define the relationship between the heating.load and the independent variables. But for this project, the non-linear models are out of scope, and can be dealt in a later project.
+
+So, as per this linear model, the linear equations would be:
+heating.load = 83.93 - 64.77 X relative.compactness - 0.087 X surface.area + 0.06 X wall.area + 4.17 X overall.height
+                + 19.93 X glazing.area + 0.2 X glazing.area.distribution
+
+The intercept 83.93 in itslf in an ideal scenario means the value of heating.load will be 83.93 if all the independent variables will be 0. Here, this is not a valid scenario, hence it does not mean anything, it only signifies here the position of the linear line.
+
+Let us see what the coefficients signify:
+Relative.compactness of a negative value (-64.77) means that the heating load is negatively dependent on the relative.compactness, which looks to be correct. More relative.compactness of a building means the building is more compact, and hence the heating load will be less. Lesser the compactness, more the heat load.
+
+For the surface area, the heat load has a negative relation, but here the coefficient is very small (-0.087). 
+
+So, as we see above, overall relative compactness, overall height and glazing area have a huge impact on the heating load of a building.
+
+## Conclusion:
+The heating load and cooling load of a building are highly dependent on these 3 variables:
+relative.compactness
+overall.height
+glazing.area
+
+Though there will be better relationship if some non-linear models are adopted. But at least a few trends come up really well by applying the best possible multiple linear model.
+
+heating.load = 83.93 - 64.77 X relative.compactness - 0.087 X surface.area + 0.06 X wall.area + 4.17 X overall.height
+                + 19.93 X glazing.area + 0.2 X glazing.area.distribution
