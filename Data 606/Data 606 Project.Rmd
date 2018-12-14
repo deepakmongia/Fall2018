@@ -15,13 +15,15 @@ This is the project for Data 606 for Fall 2018. The purpose of this project is t
 
 For this project for Data 606, we are going to work on the Energy Efficient data set which is present at this web link: http://archive.ics.uci.edu/ml/datasets/Energy+efficiency#
 
+Data link: http://archive.ics.uci.edu/ml/machine-learning-databases/00242/ENB2012_data.xlsx
+
 ```{r echo=FALSE}
-library(readxl)
+
 library(ggplot2)
+library(openxlsx)
 library(gridExtra)
 
-
-energy.efficiency.df1 <- read_xlsx("ENB2012_data.xlsx", sheet = 1)
+energy.efficiency.df1 <- read.xlsx("http://archive.ics.uci.edu/ml/machine-learning-databases/00242/ENB2012_data.xlsx")
 
 head(energy.efficiency.df1)
 
@@ -101,6 +103,7 @@ summary(energy.efficiency.df1)
 str(energy.efficiency.df1)
 
 ### Drawaing the histograms of all the variables including the response variables
+par(mfrow=c(2,2))
 hist(energy.efficiency.df1$relative.compactness)
 hist(energy.efficiency.df1$surface.area)
 hist(energy.efficiency.df1$wall.area)
@@ -112,18 +115,23 @@ hist(energy.efficiency.df1$glazing.area.distribution)
 hist(energy.efficiency.df1$heating.load)
 hist(energy.efficiency.df1$cooling.load)
 
-### Plotting the boxplots of all the variables including the response variables
-boxplot(energy.efficiency.df1$relative.compactness)
-boxplot(energy.efficiency.df1$surface.area)
-boxplot(energy.efficiency.df1$wall.area)
-boxplot(energy.efficiency.df1$roof.area)
-boxplot(energy.efficiency.df1$overall.height)
-boxplot(energy.efficiency.df1$orientation)
-boxplot(energy.efficiency.df1$glazing.area)
-boxplot(energy.efficiency.df1$glazing.area.distribution)
-boxplot(energy.efficiency.df1$heating.load)
-boxplot(energy.efficiency.df1$cooling.load)
 ```
+
+```{r}
+### Plotting the boxplots of all the variables including the response variables
+par(mfrow=c(2,2))
+boxplot(energy.efficiency.df1$relative.compactness, xlab="relative.compactness")
+boxplot(energy.efficiency.df1$surface.area, xlab="surface.area")
+boxplot(energy.efficiency.df1$wall.area, xlab="wall.area")
+boxplot(energy.efficiency.df1$roof.area, xlab="roof.area")
+boxplot(energy.efficiency.df1$overall.height, xlab="overall.height")
+boxplot(energy.efficiency.df1$orientation, xlab="orientation")
+boxplot(energy.efficiency.df1$glazing.area, xlab="glazing.area")
+boxplot(energy.efficiency.df1$glazing.area.distribution, xlab="glazing.area.distribution")
+boxplot(energy.efficiency.df1$heating.load, xlab="heating.load")
+boxplot(energy.efficiency.df1$cooling.load, xlab="cooling.load")
+```
+
 
 ### Inference
 
@@ -239,6 +247,17 @@ For the surface area, the heat load has a negative relation, but here the coeffi
 
 So, as we see above, overall relative compactness, overall height and glazing area have a huge impact on the heating load of a building.
 
+Plotting the residuals from this model:
+```{r}
+plot(heating.load.ml2$residuals ~ heating.load.ml2$fitted.values)
+
+hist(heating.load.ml2$residuals)
+
+qqnorm(heating.load.ml2$residuals)
+qqline(heating.load.ml2$residuals)
+```
+
+
 ## Conclusion:
 The heating load and cooling load of a building are highly dependent on these 3 variables:
 relative.compactness
@@ -249,3 +268,4 @@ Though there will be better relationship if some non-linear models are adopted. 
 
 heating.load = 83.93 - 64.77 X relative.compactness - 0.087 X surface.area + 0.06 X wall.area + 4.17 X overall.height
                 + 19.93 X glazing.area + 0.2 X glazing.area.distribution
+                
