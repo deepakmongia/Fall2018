@@ -1,0 +1,108 @@
+---
+title: "Data 606 Homework-8"
+author: "Deepak Mongia"
+date: "December 13, 2018"
+output: html_document
+---
+8.2 Baby weights, Part II. Exercise 8.1 introduces a data set on birth weight of babies.
+Another variable we consider is parity, which is 0 if the child is the first born, and 1 otherwise.
+The summary table below shows the results of a linear regression model for predicting the average
+birth weight of babies, measured in ounces, from parity.
+Estimate Std. Error t value Pr(>|t|)
+(Intercept) 120.07 0.60 199.94 0.0000
+parity -1.93 1.19 -1.62 0.1052
+(a) Write the equation of the regression line.
+Answer: birth weight of baby = 120.07 - 1.93 X parity
+
+(b) Interpret the slope in this context, and calculate the predicted birth weight of first borns and
+others.
+
+Answer:
+Intercept of 1207.07 indicates that when the parity is zero, that means the child is first born, the wight of the baby will be 120.07 ounces.
+
+(c) Is there a statistically significant relationship between the average birth weight and parity?
+Answer:
+
+Null Hypothesis: H0 : NO RELATIONSHIP OR SLOPE = 0
+Alternate Hypothesis: HA: relationship is there, or slope not = 0
+
+As we see from the data given, p-value = 0.1
+As p-value > 0.05 (the general value of significance level), the null hypothesis cannot be rejected. That means there is no statistical relationship between the 2.
+
+
+8.4 Absenteeism. Researchers interested in the relationship between absenteeism from school
+and certain demographic characteristics of children collected data from 146 randomly sampled students
+in rural New SouthWales, Australia, in a particular school year. Below are three observations
+from this data set.
+eth sex lrn days
+1 0 1 1 2
+2 0 1 1 11
+...
+...
+...
+...
+...
+146 1 0 0 37
+The summary table below shows the results of a linear regression model for predicting the average
+number of days absent based on ethnic background (eth: 0 - aboriginal, 1 - not aboriginal), sex
+(sex: 0 - female, 1 - male), and learner status (lrn: 0 - average learner, 1 - slow learner).18
+Estimate Std. Error t value Pr(>|t|)
+(Intercept) 18.93 2.57 7.37 0.0000
+eth -9.11 2.60 -3.51 0.0000
+sex 3.10 2.64 1.18 0.2411
+lrn 2.15 2.65 0.81 0.4177
+(a) Write the equation of the regression line.
+
+Answer:
+number of days absent = 18.93 - 9.11 X eth + 3.10 X sex + 2.15 X lrn
+
+(b) Interpret each one of the slopes in this context.
+Answer:
+ethnic background:
+a student with non-aboriginal background is estimated to be absent 9.11 days less as compared to a student with aboriginal background
+
+sex:
+a male student is predicted to be 3.1 days less absent as compared to a female student, on an average
+
+lrn:
+a slow learner is predicted to be 2.15 days less absent on an average as compared to an average learner
+
+(c) Calculate the residual for the first observation in the data set: a student who is aboriginal,
+male, a slow learner, and missed 2 days of school.
+Answer:
+Using the equation from answer a above:
+number of days absent = 18.93 - 9.11 X eth + 3.10 X sex + 2.15 X lrn
+                      = 18.93 - 9.11 X 0 + 3.10 X 1 + 2.15 X 1
+                      = 24.18
+
+RESIDUAL = 2 - 24.18 = -22.18
+
+(d) The variance of the residuals is 240.57, and the variance of the number of absent days for all
+students in the data set is 264.17. Calculate the R2 and the adjusted R2. Note that there are
+146 observations in the data set.
+Answer:
+```{r}
+R_squared <- 1 - (240.57 / 264.17)
+R_squared
+
+R_squared_adj <- 1 - ((240.57 / 264.17) * (146 - 1)/(146-3-1))
+R_squared_adj
+
+```
+
+
+
+8.8 Absenteeism, Part II. Exercise 8.4 considers a model that predicts the number of days
+absent using three predictors: ethnic background (eth), gender (sex), and learner status (lrn).
+The table below shows the adjusted R-squared for the model as well as adjusted R-squared values
+for all models we evaluate in the first step of the backwards elimination process.
+Model Adjusted R2
+1 Fullmodel 0.0701
+2 Noethnicity -0.0033
+3 Nosex 0.0676
+4 No learner status 0.0723
+Which, if any, variable should be removed from the model first?
+
+Answer:
+As we see in the above data, removing learner status increases the R squared value as compared the full model, so learner status should be removed first
+
