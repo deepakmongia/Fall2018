@@ -1,0 +1,348 @@
+---
+title: "DATA 606 Fall 2018 - Final Exam"
+author: ""
+#output: pdf_document
+output: html_document
+---
+
+```{r, echo=FALSE}
+options(digits = 2)
+```
+
+# Part I
+
+Please put the answers for Part I next to the question number (2pts each):
+
+1.  b
+2.  a
+3.  d
+4.  d
+5.  a
+6.  d
+
+7a. Describe the two distributions (2pts).
+
+Distribution A is the distribution or the histogram of the whole population, while B is the plot of the means of the random samples all of the same size from the overall population. B is called the sample distribution of the sampled means.
+As we see from A, the distribution is not close to normal at all, while the sampling distribution is very close to normal. This is because when the samples are taken and their means are derived, the means tend to fall near the mean of the population, as the number of samples increase.
+This is the basic foundation of inference.
+
+7b. Explain why the means of these two distributions are similar but the standard deviations are not (2 pts).
+
+Answer: As explained in a, the mean of the samples tend to fall around the population mean. As in this example, 500 random samples of 30 size each are used, and 500 is a big enough number, hence the mean of the sampling distribution (5.04) tends to fall around the population mean of 5.05.
+
+The standard deviation in B is actually the standard error of the means. As the sample size increases, the standard error of means reduces. This is also defined using the formula : SE = sigma / sqrt(n), where sigma = standard deviation of the population, and n = sample size.
+In this case SE = (standard deviation of A) / SQRT(30)
+```{r}
+SE_7b <- 3.22 / sqrt(30)
+SE_7b
+```
+
+Which proves the data given.
+
+7c. What is the statistical principal that describes this phenomenon (2 pts)?
+
+Answer: The basic principle is - whatever distribution of the population, as we take huge number of samples of fairly big sample size (typically at least 30), the sampling distribution of the sample means tends to follow a nearly normal distribution. That means the mean of the sampling distribution is very close to the actual population mean. 
+This forms the basis of statistical inference.
+
+# Part II
+
+Consider the four datasets, each with two columns (x and y), provided below. Be sure to replace the `NA` with your answer for each part (e.g. assign the mean of `x` for `data1` to the `data1.x.mean` variable). When you Knit your answer document, a table will be generated with all the answers.
+
+```{r}
+options(digits=2)
+data1 <- data.frame(x=c(10,8,13,9,11,14,6,4,12,7,5),
+					y=c(8.04,6.95,7.58,8.81,8.33,9.96,7.24,4.26,10.84,4.82,5.68))
+data2 <- data.frame(x=c(10,8,13,9,11,14,6,4,12,7,5),
+					y=c(9.14,8.14,8.74,8.77,9.26,8.1,6.13,3.1,9.13,7.26,4.74))
+data3 <- data.frame(x=c(10,8,13,9,11,14,6,4,12,7,5),
+					y=c(7.46,6.77,12.74,7.11,7.81,8.84,6.08,5.39,8.15,6.42,5.73))
+data4 <- data.frame(x=c(8,8,8,8,8,8,8,19,8,8,8),
+					y=c(6.58,5.76,7.71,8.84,8.47,7.04,5.25,12.5,5.56,7.91,6.89))
+```
+
+For each column, calculate (to two decimal places):
+
+#### a. The mean (for x and y separately; 1 pt).
+
+```{r include=TRUE}
+data1.x.mean <- mean(data1$x)
+data1.x.mean
+data1.y.mean <- mean(data1$y)
+data1.y.mean
+data2.x.mean <- mean(data2$x)
+data2.x.mean
+data2.y.mean <- mean(data2$y)
+data2.y.mean
+data3.x.mean <- mean(data3$x)
+data3.x.mean
+data3.y.mean <- mean(data3$y)
+data3.y.mean
+data4.x.mean <- mean(data4$x)
+data4.x.mean
+data4.y.mean <- mean(data4$y)
+data4.y.mean
+```
+
+#### b. The median (for x and y separately; 1 pt).
+
+```{r include=TRUE}
+data1.x.median <- median(data1$x)
+data1.x.median
+data1.y.median <- median(data1$y)
+data1.y.median
+data2.x.median <- median(data2$x)
+data2.x.median
+data2.y.median <- median(data2$y)
+data2.y.median
+data3.x.median <- median(data3$x)
+data3.x.median
+data3.y.median <- median(data3$y)
+data3.y.median
+data4.x.median <- median(data4$x)
+data4.x.median
+data4.y.median <- median(data4$y)
+data4.y.median
+```
+
+#### c. The standard deviation (for x and y separately; 1 pt).
+
+```{r include=TRUE}
+data1.x.sd <- sd(data1$x)
+data1.x.sd
+data1.y.sd <- sd(data1$y)
+data1.y.sd
+data2.x.sd <- sd(data2$x)
+data2.x.sd
+data2.y.sd <- sd(data2$y)
+data2.y.sd
+data3.x.sd <- sd(data3$x)
+data3.x.sd
+data3.y.sd <- sd(data3$y)
+data3.y.sd
+data4.x.sd <- sd(data4$x)
+data4.x.sd
+data4.y.sd <- sd(data4$y)
+data4.y.sd
+```
+
+#### For each x and y pair, calculate (also to two decimal places; 1 pt):
+
+#### d. The correlation (1 pt).
+
+```{r include=TRUE}
+data1.correlation <- cor(data1$x, data1$y)
+data1.correlation
+data2.correlation <- cor(data2$x, data2$y)
+data2.correlation
+data3.correlation <- cor(data3$x, data3$y)
+data3.correlation
+data4.correlation <- cor(data4$x, data4$y)
+data4.correlation
+```
+
+#### e. Linear regression equation (2 pts).
+
+```{r include=TRUE}
+lm1 <- lm(y ~ x, data = data1)
+summary(lm1)
+lm2 <- lm(y ~ x, data = data2)
+summary(lm2)
+lm3 <- lm(y ~ x, data = data3)
+summary(lm3)
+lm4 <- lm(y ~ x, data = data4)
+summary(lm4)
+
+data1.slope <- summary(lm1)$coefficients[2,1]
+data1.slope
+data2.slope <- summary(lm2)$coefficients[2,1]
+data2.slope
+data3.slope <- summary(lm3)$coefficients[2,1]
+data3.slope
+data4.slope <- summary(lm4)$coefficients[2,1]
+data4.slope
+
+data1.intercept <- summary(lm1)$coefficients[1,1]
+data1.intercept
+data2.intercept <- summary(lm2)$coefficients[1,1]
+data2.intercept
+data3.intercept <- summary(lm3)$coefficients[1,1]
+data3.intercept
+data4.intercept <- summary(lm4)$coefficients[1,1]
+data4.intercept
+```
+
+#### f. R-Squared (2 pts).
+
+```{r include=TRUE}
+data1.rsquared <- summary(lm1)$r.squared
+data1.rsquared
+data2.rsquared <- summary(lm2)$r.squared
+data2.rsquared
+data3.rsquared <- summary(lm3)$r.squared
+data3.rsquared
+data4.rsquared <- summary(lm4)$r.squared
+data4.rsquared
+```
+
+```{r, echo=FALSE, results='asis'}
+##### DO NOT MODIFY THIS R BLOCK! ######
+# This R block will create a table to display all the calculations above in one table.
+library(knitr)
+library(kableExtra)
+results <- data.frame(
+	data1.x = c(data1.x.mean, data1.x.median, data1.x.sd, data1.correlation, data1.intercept, data1.slope, data1.rsquared),
+	data1.y = c(data1.y.mean, data1.y.median, data1.y.sd, NA, NA, NA, NA),
+	data2.x = c(data2.x.mean, data2.x.median, data2.x.sd, data2.correlation, data2.intercept, data2.slope, data2.rsquared),
+	data2.y = c(data2.y.mean, data2.y.median, data2.y.sd, NA, NA, NA, NA),
+	data3.x = c(data3.x.mean, data3.x.median, data3.x.sd, data3.correlation, data3.intercept, data3.slope, data3.rsquared),
+	data3.y = c(data3.y.mean, data3.y.median, data3.y.sd, NA, NA, NA, NA),
+	data4.x = c(data4.x.mean, data4.x.median, data4.x.sd, data4.correlation, data4.intercept, data4.slope, data4.rsquared),
+	data4.y = c(data4.y.mean, data4.y.median, data4.y.sd, NA, NA, NA, NA),
+	stringsAsFactors = FALSE
+)
+row.names(results) <- c('Mean', 'Median', 'SD', 'r', 'Intercept', 'Slope', 'R-Squared')
+names(results) <- c('x','y','x','y','x','y','x','y')
+options(knitr.kable.NA = '')
+kable(results, digits = 2, 
+	  align = 'r',
+	  row.names = TRUE, 
+	  format.args=list(nsmall = 2)) %>%
+	column_spec(2:9, width = ".35in") %>%
+	add_header_above(c(" " = 1, "Data 1" = 2, "Data 2" = 2, "Data 3" = 2, "Data 4" = 2))
+```
+
+#### g. For each pair, is it appropriate to estimate a linear regression model? Why or why not? Be specific as to why for each pair and include appropriate plots! (4 pts)
+
+## Data1
+```{r}
+library(ggplot2)
+
+### Let us start with data1. The model name is lm1.
+## Plotting the scatter plot and the linear model on the same plot
+ggplot(data1, aes(x=x, y=y)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=x, y=predict(lm1, newdata = data1)), color = "blue")
+
+## Building the residual plot
+plot(lm1$residuals ~ data1$x)
+abline(h = 0, lty = 3)
+
+## Histogram of residuals
+hist(lm1$residuals)
+
+## Normal probability plot of residuals
+qqnorm(lm1$residuals)
+qqline(lm1$residuals)
+
+```
+1. Checking the Linearity:
+From the scatter plot and the model line, it is clearly visible that the data has a linear trend.
+
+2. Normal Residuals check: 
+From the residuals plot, we see that there are a few outliers. Also from the residuals histogram, it is clear that the residuals are not normally distributed.
+
+3. Constant variability:
+From the residual plot, the variability is not constant.
+
+Hence from the above, the linear model defined above might not be the best fit.
+
+
+## Data2
+```{r}
+### Let us start with data1. The model name is lm1.
+## Plotting the scatter plot and the linear model on the same plot
+ggplot(data2, aes(x=x, y=y)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=x, y=predict(lm2, newdata = data2)), color = "blue")
+
+## Building the residual plot
+plot(lm2$residuals ~ data2$x)
+abline(h = 0, lty = 3)
+
+## Histogram of residuals
+hist(lm2$residuals)
+
+## Normal probability plot of residuals
+qqnorm(lm2$residuals)
+qqline(lm2$residuals)
+
+```
+1. Checking the Linearity:
+As seen from the plots 1 and 2 above for data2, the data does not have a linear trend. So a linear model won't be a good fit.
+Hence no need to check the next conditions.
+
+
+## Data3
+```{r}
+### Let us start with data1. The model name is lm1.
+## Plotting the scatter plot and the linear model on the same plot
+ggplot(data3, aes(x=x, y=y)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=x, y=predict(lm3, newdata = data3)), color = "blue")
+
+## Building the residual plot
+plot(lm3$residuals ~ data3$x)
+abline(h = 0, lty = 3)
+
+## Histogram of residuals
+hist(lm3$residuals)
+
+## Normal probability plot of residuals
+qqnorm(lm3$residuals)
+qqline(lm3$residuals)
+
+```
+1. Checking the Linearity:
+From the scatter plot and the model line, it looks somewhat linear, however there is a point on the top. We will see further in the residual plot.
+
+2. Normal Residuals check: 
+From the residual histogram plot, it is clear that the residuals are not normally distributed.
+
+3. Constant variability:
+From the residual plot, there is a outlier, and it is a high leverage point.
+
+Hence from the above, the linear model defined above might not best fit the data.
+
+## Data4
+```{r}
+### Let us start with data1. The model name is lm1.
+## Plotting the scatter plot and the linear model on the same plot
+ggplot(data4, aes(x=x, y=y)) +
+  geom_point(color = "red") +
+  geom_line(aes(x=x, y=predict(lm4, newdata = data4)), color = "blue")
+
+## Building the residual plot
+plot(lm4$residuals ~ data4$x)
+abline(h = 0, lty = 3)
+
+## Histogram of residuals
+hist(lm4$residuals)
+
+## Normal probability plot of residuals
+qqnorm(lm4$residuals)
+qqline(lm4$residuals)
+
+```
+1. Checking the Linearity:
+From the scatter plot and the model line, it is very clear that all but one points have the same x-value, or all the points excpet one lie on a straight vertical line. But as there is one point on the top right, the linear model gets created as shown by the blue line.
+The linear model shown with blue is not a good fit at all.
+
+2. Normal Residuals check: 
+From the residual histogram plot, it is clear that the residuals are not normally distributed.
+
+No need to check further.
+
+From above, it is clear that the linear model won't fit at all.
+
+
+So, from all the above 4 data, it is clear that data1 best fits a linear model, even though it also does not fit really well.
+
+
+#### h. Explain why it is important to include appropriate visualizations when analyzing data. Include any visualization(s) you create. (2 pts)
+
+Answer:
+From the scatter plot, we get a very good idea if the data shows a linear trend or not. As wee see from the previous question, for data2 and data4, the scatter plots gave a very good sense that the data is not linear at all.
+Also, the histogram plots shows whether the data has a constant variability or if there are any outliers.
+The residuals histograms show whether the residuals follow a normal distribution or not.
+
+Hence, by going thru the appropriate visualizations, as we went thru in (g) above, we were able to decide whether linear models would fit the data or not.
